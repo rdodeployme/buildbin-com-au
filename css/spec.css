@@ -83,7 +83,7 @@
 .sheet .flapno{font:800 calc(150px * var(--k)) var(--display);fill:#EEF1F3}
 .sheet .listbar{fill:#9aa3ab;stroke:none} .sheet .listbar.no{fill:#C2804F}
 .sheet .pockethid{fill:none;stroke:#59626a;stroke-width:6;stroke-dasharray:30 20}
-.sheet .pocket{fill:#14181C;stroke:none;opacity:.85}
+.sheet .pocket{fill:#0B0D0F;stroke:#C2804F;stroke-width:14}
 .sheet .door{stroke:#C2804F;stroke-width:30}
 .sheet .doorface{fill:none;stroke:#8F603F;stroke-width:8;stroke-dasharray:40 24}
 .sheet .doorface.solid{fill:#3A4148;stroke:#0E1114;stroke-dasharray:none}

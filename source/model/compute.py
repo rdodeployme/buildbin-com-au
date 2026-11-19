@@ -126,7 +126,7 @@ for side, ids in SIDES.items():
 station_net = sum(bin_dims(modules[k])[1] for k in modules)
 print(f"Station net {station_net:.1f} m3; 240 m2 home {240*32.2/1000*tot_v:.0f} m3 -> {240*32.2/1000*tot_v/(station_net*0.85):.1f} change-overs at 85% full")
 
-cfg = {"geo": GEO, "open_flaps": {"timber": 90, "card": 90, "general": 90, "rubble": 90, "steel": 90},
+cfg = {"geo": GEO, "open_flaps": {"timber": 90, "card": 90},
        "modular": {"modules_per_side": MODULES_PER_SIDE, "sides": SIDES},
        "streams": [{"n": n, "id": k, "name": name, "short": short, "share": round(modules[k] / (2 * MODULES_PER_SIDE), 4), "kind": kind, "modules": modules[k]}
                    for n, k, name, short, kind in STREAMS]}

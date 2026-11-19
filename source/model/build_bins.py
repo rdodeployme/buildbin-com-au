@@ -169,6 +169,7 @@ M.update({
     "lid": mat("Bin lid", "#232A30", 0.45, 0.38),
     "door": mat("Trap door", "#262C32", 0.45, 0.4),
     "hinge": mat("Hinge", "#8A939B", 0.9, 0.3),
+    "pocket": mat("Pocket", "#06080A", 0.3, 0.6),
 })
 
 def prism_x(name, pts_yz, x_c, thick, m):
@@ -338,16 +339,28 @@ for side, sgn in (("A", +1), ("B", -1)):
         yb = sgn * (CW/2)                          # back face (to the centre)
         ym = (yf + yb) / 2
         ya_, yb_ = min(yf, yb), max(yf, yb)
-        # base: two runners under the side walls (100 high) then two fork pockets (200-300) running front to back
+        # base 300 high: solid plate all round with two fork-pocket holes front and back (pocket underside 200 above the base)
         parts = []
-        for xr in (x + 0.04, x + w - 0.04):
-            parts.append(box("b", (0.08, DEPTH, PB - DECK), (xr, ym, DECK + (PB - DECK)/2), M["bin"]))
-        pc = max(0.30, min(1.0, w * 0.55))
-        for k2 in (-1, 1):
-            xp = cx + k2 * pc/2
-            parts.append(box("pk", (0.20, DEPTH, PH), (xp, ym, PB + PH/2), M["chassis"]))
-            parts.append(box("pkt", (0.20, DEPTH + 0.002, 0.006), (xp, ym, PB + PH - 0.003), M["bin"]))
-        parts.append(box("bx", (w, DEPTH, 0.04), (cx, ym, PB + 0.02), M["bin"]))      # cross frame at pocket level
+        pc = max(0.30, min(1.0, w * 0.55)); PW_ = 0.20
+        holes = sorted(cx + k2 * pc/2 for k2 in (-1, 1))
+        for yface in (yf - sgn * T/2, yb + sgn * T/2):
+            parts.append(box("bs1", (w, T, PB - DECK), (cx, yface, DECK + (PB - DECK)/2), M["bin"]))           # below the holes
+            edges = [x] + [e for h in holes for e in (h - PW_/2, h + PW_/2)] + [x + w]
+            for a_, b_ in zip(edges[0::2], edges[1::2]):                                                      # between / beside the holes
+                parts.append(box("bs2", (b_ - a_, T, PH), ((a_ + b_)/2, yface, PB + PH/2), M["bin"]))
+            # copper frame round each pocket mouth
+            yo = yface + (sgn if yface * sgn > abs(yb) else -sgn) * 0.004
+            for h in holes:
+                for (dx, dz, sx, sz) in ((0, PH/2 + 0.012, PW_ + 0.048, 0.024), (0, -PH/2 - 0.012, PW_ + 0.048, 0.024),
+                                         (-PW_/2 - 0.012, 0, 0.024, PH), (PW_/2 + 0.012, 0, 0.024, PH)):
+                    parts.append(box("pf", (sx, 0.008, sz), (h + dx, yo, PB + PH/2 + dz), M["cupaint"]))
+        for xs in (x + T/2, x + w - T/2):
+            parts.append(box("bsd", (T, DEPTH, FLOOR - DECK), (xs, ym, DECK + (FLOOR - DECK)/2), M["bin"]))
+        # fork pockets: open tubes running front to back, dark inside
+        for h in holes:
+            for (dx, dz, sx, sz) in ((0, PH/2 + 0.003, PW_ + 0.012, 0.006), (0, -PH/2 - 0.003, PW_ + 0.012, 0.006),
+                                     (-PW_/2 - 0.003, 0, 0.006, PH), (PW_/2 + 0.003, 0, 0.006, PH)):
+                parts.append(box("pt", (sx, DEPTH - 0.004, sz), (h + dx, ym, PB + PH/2 + dz), M["pocket"]))
         parts.append(box("fl", (w, DEPTH, T), (cx, ym, FLOOR + T/2), M["bin"]))      # floor
         # front wall below the flap, back wall, two sides (sloped tops)
         parts.append(box("fw", (w, T, FB - FLOOR), (cx, yf - sgn * T/2, FLOOR + (FB - FLOOR)/2), M["bin"]))
@@ -362,11 +375,15 @@ for side, sgn in (("A", +1), ("B", -1)):
         parts.append(box("lk", (0.12, 0.05, 0.05), (cx, yf + sgn * 0.02, FT - 0.04), M["chassis"]))
         parts.append(box("lkl", (0.03, 0.004, 0.012), (cx, yf + sgn * 0.046, FT - 0.04), M["cupaint"]))
         binobj = join_as(parts, f"Bin_{sid}")
-        # hard lid: ridge in the middle of the skid (2.0 m), falling 100 mm to the front edge (1.9 m)
-        ang = math.atan2(FT - BT, DEPTH); ll = math.hypot(DEPTH, FT - BT) + 0.03
-        lid = box(f"Lid_{sid}", (w + 0.01, ll + 0.04, T), (cx, ym + sgn * 0.02, (FT + BT)/2 + T/2), M["lid"], rot=(sgn * ang, 0, 0))   # 50 mm drip overhang at the front
+        # hard lid: highest at the ridge down the middle of the skid (2.0 m), sloping down and away to the front edge (1.9 m)
+        ang = math.atan2(FT - BT, DEPTH); ll = math.hypot(DEPTH, FT - BT)
+        lp = [box(f"Lid_{sid}", (w - 0.002, ll + 0.01, T), (cx, ym, (FT + BT)/2 + T/2), M["lid"], rot=(sgn * ang, 0, 0))]
+        lp.append(box("drip", (w - 0.002, T, 0.03), (cx, yf + sgn * 0.016, FT - 0.011), M["lid"]))                 # turned-down drip edge over the flap
+        lp.append(box("ridge", (w - 0.002, 0.07, 0.01), (cx, yb + sgn * 0.035, BT + T + 0.008 - 0.0031), M["copper"], rot=(sgn * ang, 0, 0)))  # copper ridge line
+        lp.append(box("bfold", (w - 0.002, T, 0.04), (cx, yb + sgn * 0.0, BT - 0.016), M["lid"]))                   # back fold into the centre gap
+        lid = join_as(lp, f"Lid_{sid}")
         # drop-down front flap: bottom hinge at 1.2 m, closes under the lid's front edge
-        fh = FT - 0.012 - FB; fw = w - 0.07
+        fh = FT - 0.032 - FB; fw = w - 0.07
         f = box(f"Flap_{sid}", (fw, T, fh), (cx, yf + sgn * 0.006, FB + fh/2), M["flap"])
         set_origin(f, (cx, yf + sgn * 0.006, FB))
         rzf = 0 if sgn < 0 else math.pi; fy = yf + sgn * 0.0095
