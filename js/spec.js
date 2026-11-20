@@ -1,6 +1,6 @@
 // BuildersBins fabricator spec, Rev B: hook skid + 8 stand-alone bins -> drawings, schedule, BOM
 const L = 6300, W = 2450, DECK = 100, RAIL_H = 100, RAIL_W = 50, CW = 50, REAR = 150, HOOKZ = 300;
-const MOD = 585, NMOD = 10, PER_SIDE = 4, GAP = 20, T = 4, DEPTH = 1150, MAXM = 6;
+const MOD = 585, NMOD = 10, PER_SIDE = 4, GAP = 20, T = 4, DEPTH = 1140, MAXM = 6, CL = 5;
 const FT = 1900, BT = 2000, FB = 1200, PB = 300, PH = 100, FLOOR = 400;   // heights from the ground, bins on the skid
 const X0 = REAR, HOOK_Z = 1450;
 const IH_F = FT - T - (FLOOR + T), IH_B = BT - T - (FLOOR + T), IH = (IH_F + IH_B) / 2, ID = DEPTH - 2 * T;
@@ -136,7 +136,7 @@ function drawPlan() {
   rect(svg, L - 190, W / 2 - 80, 140, 160, 'chassis'); rect(svg, L - 180, 50, 60, W - 100, 'chassis');
   for (const [ly, lbl] of [[110, 'LIGHT'], [W - 110, 'LIGHT']]) { el(svg, 'circle', { cx: L - 210, cy: ly, r: 60, class: 'lampdot' }); txt(svg, L - 300, ly + 20, lbl, 'tiny', 'end'); }
   el(svg, 'circle', { cx: 50, cy: W / 2, r: 60, class: 'lampdot' });
-  const yRow = { A: [RAIL_W, RAIL_W + DEPTH], B: [W - RAIL_W - DEPTH, W - RAIL_W] };
+  const yRow = { A: [RAIL_W + CL, RAIL_W + CL + DEPTH], B: [W - RAIL_W - CL - DEPTH, W - RAIL_W - CL] };
   for (const side of ['A', 'B']) {
     const [y0, y1] = yRow[side], used_ = used(side);
     if (used_ < NMOD) rect(svg, X0 + used_ * MOD, y0, (NMOD - used_) * MOD, DEPTH, 'free').setAttribute('fill', svg._hx);
@@ -162,8 +162,8 @@ function drawPlan() {
   dimH(svg, 0, X0, W + 470, '150', W, true);
   dimH(svg, L - HOOKZ, L, W + 470, '300 hook', W, true);
   dimV(svg, 0, W, L + 380, '2,450', L);
-  dimV(svg, RAIL_W, RAIL_W + DEPTH, L + 190, '1,150', L, true);
-  dimV(svg, W - RAIL_W - DEPTH, W - RAIL_W, L + 190, '1,150', L, true);
+  dimV(svg, RAIL_W + CL, RAIL_W + CL + DEPTH, L + 190, '1,140', L, true);
+  dimV(svg, W - RAIL_W - CL - DEPTH, W - RAIL_W - CL, L + 190, '1,140', L, true);
   txt(svg, L + 420, -620, 'HOOK END →', 'note', 'end');
   txt(svg, -600, -620, '← REAR', 'note', 'start');
   txt(svg, L / 2, W / 2 + 30, 'CENTRE RAIL · DRAIN', 'tiny');
@@ -223,7 +223,7 @@ function drawSection() {
   rect(svg, 0, Y(DECK), W, DECK, 'chassis');
   rect(svg, 0, Y(DECK + RAIL_H), RAIL_W, RAIL_H, 'band'); rect(svg, W - RAIL_W, Y(DECK + RAIL_H), RAIL_W, RAIL_H, 'band');
   rect(svg, W / 2 - CW / 2, Y(DECK + RAIL_H), CW, RAIL_H, 'chassis');
-  for (const [yf, yb, dir] of [[RAIL_W, RAIL_W + DEPTH, -1], [W - RAIL_W, W - RAIL_W - DEPTH, 1]]) {
+  for (const [yf, yb, dir] of [[RAIL_W + CL, RAIL_W + CL + DEPTH, -1], [W - RAIL_W - CL, W - RAIL_W - CL - DEPTH, 1]]) {
     const ya = Math.min(yf, yb), yz = Math.max(yf, yb);
     poly(svg, [[yf, Y(DECK)], [yf, Y(FT)], [yb, Y(BT)], [yb, Y(DECK)]], 'body');
     rect(svg, ya + 40, Y(PB + PH), DEPTH - 80, PH, 'pocket');
@@ -238,8 +238,8 @@ function drawSection() {
   }
   txt(svg, W / 2, Y(BT + 160), 'RIDGE · FALLS TO BOTH SIDES', 'tiny');
   dimH(svg, 0, W, 300, '2,450', 0);
-  dimH(svg, RAIL_W, RAIL_W + DEPTH, 140, '1,150', 0, true);
-  dimH(svg, W - RAIL_W - DEPTH, W - RAIL_W, 140, '1,150', 0, true);
+  dimH(svg, RAIL_W + CL, RAIL_W + CL + DEPTH, 140, '1,140', 0, true);
+  dimH(svg, W - RAIL_W - CL - DEPTH, W - RAIL_W - CL, 140, '1,140', 0, true);
   dimV(svg, Y(FLOOR), 0, -200, '400 floor', 0, true);
   dimV(svg, Y(FB), 0, -460, '1,200', 0, true);
   dimV(svg, Y(FT), 0, -720, fmt(FT) + ' front', 0);
@@ -276,7 +276,7 @@ function drawPod() {
   rect(svg, ox + 60, Y(zb(DOOR.z1)), DOOR.w, DOOR.z1 - DOOR.z0, 'doorface solid');
   line(svg, ox + 60, Y(zb(DOOR.z1)), ox + 60 + DOOR.w, Y(zb(DOOR.z1)), 'hingeline');
   for (const k of [0, 1]) rect(svg, ox + 60 + 120 + k * (DOOR.w - 240) - 30, Y(zb(DOOR.z0) + 50), 60, 40, 'band');
-  dimH(svg, ox, ox + DEPTH, 250, '1,150', 0);
+  dimH(svg, ox, ox + DEPTH, 250, '1,140', 0);
   dimH(svg, ox + 60, ox + 60 + DOOR.w, -(zb(FT) + 140), `${fmt(DOOR.w)} door`, -zb(BT), true);
   dimV(svg, Y(zb(DOOR.z1)), Y(zb(DOOR.z0)), ox + DEPTH + 220, `${fmt(DOOR.z1 - DOOR.z0)} door`, ox + DEPTH, true);
   dimV(svg, Y(zb(BT)), 0, ox + DEPTH + 480, fmt(zb(BT)), ox + DEPTH);
@@ -293,7 +293,7 @@ function schedule() {
     const s = S[p.id], full = p.net * s.density, over = full > state.swl;
     const fill = over ? Math.floor(state.swl / (s.density * (p.iw * ID / 1e6)) / 10) * 10 : null;
     net += p.net; load += over ? state.swl : full; tare += p.tare; mods += p.n; sizes[`${p.n}-module (${fmt(p.w)})`] = (sizes[`${p.n}-module (${fmt(p.w)})`] || 0) + 1;
-    rows.push(`<tr${over ? ' class="over"' : ''}><td class="n">${nn(p.id)}</td><td>${s.name}</td><td>${side}</td><td>${p.n}</td><td>${fmt(p.w)} × 1,150 × ${fmt(FT - DECK)}/${fmt(BT - DECK)}</td><td>${fmt(p.iw)} × ${fmt(ID)} × ${fmt(IH_F)}/${fmt(IH_B)}</td><td>${m3(p.net)}</td><td>${fmt(p.flapW)} × ${fmt(p.flapH)}</td><td>${fmt(DOOR.w)} × ${fmt(DOOR.z1 - DOOR.z0)}</td><td>${fmt(Math.round(p.tare / 10) * 10)}</td><td>${fmt(s.density)}</td><td>${fmt(full)}</td><td>${fill ? `${fmt(fill)} above floor` : 'To top'}</td></tr>`);
+    rows.push(`<tr${over ? ' class="over"' : ''}><td class="n">${nn(p.id)}</td><td>${s.name}</td><td>${side}</td><td>${p.n}</td><td>${fmt(p.w)} × 1,140 × ${fmt(FT - DECK)}/${fmt(BT - DECK)}</td><td>${fmt(p.iw)} × ${fmt(ID)} × ${fmt(IH_F)}/${fmt(IH_B)}</td><td>${m3(p.net)}</td><td>${fmt(p.flapW)} × ${fmt(p.flapH)}</td><td>${fmt(DOOR.w)} × ${fmt(DOOR.z1 - DOOR.z0)}</td><td>${fmt(Math.round(p.tare / 10) * 10)}</td><td>${fmt(s.density)}</td><td>${fmt(full)}</td><td>${fill ? `${fmt(fill)} above floor` : 'To top'}</td></tr>`);
   }
   $('#sched').innerHTML = `<thead><tr><th>Bin</th><th>Stream</th><th>Side</th><th>Modules</th><th>External W × D × H front/back</th><th>Internal W × D × H front/back</th><th>Net m³</th><th>Flap opening</th><th>Trap door</th><th>Tare kg (est.)</th><th>Loose kg/m³</th><th>Full load kg</th><th>Fill line</th></tr></thead><tbody>${rows.join('')}</tbody>
   <tfoot><tr><td colspan="3">Station</td><td>${mods}</td><td></td><td></td><td>${m3(net)}</td><td></td><td></td><td>${fmt(Math.round(tare / 10) * 10)}</td><td></td><td>${fmt(load)}</td><td></td></tr></tfoot>`;
@@ -302,14 +302,14 @@ function schedule() {
     (freeA + freeB ? `<p class="warn">${freeA + freeB} module${freeA + freeB > 1 ? 's are' : ' is'} unused. Give ${freeA + freeB > 1 ? 'them' : 'it'} to a bin or the skid carries empty space.</p>` : '');
   $('#dimList').innerHTML = [
     ['Design basis', 'Skid 6,300 long × 2,450 wide, deck 100 above the ground.'],
-    ['Design basis', 'Bins: 1,150 deep, modules × 585 − 20 wide. Lid ridge 2,000 down the middle of the skid, falling to 1,900 at the front edge.'],
+    ['Design basis', 'Bins: 1,140 deep, modules × 585 − 20 wide. Lid ridge 2,000 down the middle of the skid, falling to 1,900 at the front edge.'],
     ['Design basis', 'Flap 1,200 to 1,900. Fork pockets 200 above the bin base (300 above the ground on the skid), floor at 400, rail 100 high on the deck.'],
     ['Design basis', `Usable volume ${m3(net)} m³ across eight bins.`],
     ['To confirm', 'Hook height, runner spacing and roller size on the operator\'s trucks.'],
   ].map(([t, s]) => `<li><span class="st ${t === 'To confirm' ? 'st-t' : 'st-b'}">${t}</span>${s}</li>`).join('');
   const bom = [
     ['Hook skid: runners, deck, rear rollers, A-frame, rear stop', 1, 'Hook interface to suit fleet'],
-    ['100 mm retaining rails', 3, 'Both outer edges and centre, 5,850 long'],
+    ['Kerb rails, RHS 100 × 50 × 6, continuously welded', 3, 'Both outer edges and centre, 5,850 long'],
     ['Bins, 4 mm plate', 8, Object.entries(sizes).sort().map(([k, v]) => `${v} × ${k}`).join(', ')],
     ['Hard lids, welded, 100 fall', 8, '1 per bin'],
     ['Drop-down front flaps', 8, '2 hinges and 2 check chains or stays each'],

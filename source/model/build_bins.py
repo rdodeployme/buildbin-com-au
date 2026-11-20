@@ -335,8 +335,9 @@ for side, sgn in (("A", +1), ("B", -1)):
     for sid in MODCFG[side]:
         s = byid[sid]; n = s["modules"]
         x = X0 + k0 * MODL + GAP/2; w = n * MODL - GAP; cx = x + w/2; k0 += n
-        yf = sgn * (W/2 - RAIL_W)                  # outer (front) face of the bin
-        yb = sgn * (CW/2)                          # back face (to the centre)
+        CL = G.get("clear", 0)
+        yf = sgn * (W/2 - RAIL_W - CL)             # outer (front) face of the bin, 5 mm off the rail
+        yb = sgn * (CW/2 + CL)                     # back face, 5 mm off the centre rail
         ym = (yf + yb) / 2
         ya_, yb_ = min(yf, yb), max(yf, yb)
         # base 300 high: solid plate all round with two fork-pocket holes front and back (pocket underside 200 above the base)

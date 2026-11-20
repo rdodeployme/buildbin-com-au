@@ -84,13 +84,13 @@ for lab, r in KG_PER_M2.items():
 # All heights are from the ground with the bins on the skid. Lengths in metres.
 GEO = {
     "L": 6.3, "W": 2.45, "deck": 0.10, "rail_h": 0.10, "rail_w": 0.05, "centre_w": 0.05,
-    "rear_zone": 0.15, "hook_zone": 0.30, "gap": 0.02, "plate": 0.004,
+    "rear_zone": 0.15, "hook_zone": 0.30, "gap": 0.02, "plate": 0.004, "clear": 0.005,
     "front_top": 1.90, "back_top": 2.00, "flap_bot": 1.20, "pocket_bot": 0.30, "pocket_h": 0.10, "floor": 0.40,
 }
 MODULES_PER_SIDE = 10
 bin_zone = GEO["L"] - GEO["rear_zone"] - GEO["hook_zone"]
 mod_len = bin_zone / MODULES_PER_SIDE
-depth = (GEO["W"] - 2 * GEO["rail_w"] - GEO["centre_w"]) / 2
+depth = (GEO["W"] - 2 * GEO["rail_w"] - GEO["centre_w"]) / 2 - 2 * GEO["clear"]   # 5 mm clearance to each rail
 GEO.update({"module": mod_len, "depth": depth})
 SIDES = {"A": ["general", "plastic", "eps", "card"], "B": ["timber", "rubble", "steel", "plaster"]}
 modules = {}
