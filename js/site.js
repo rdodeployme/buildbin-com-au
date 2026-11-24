@@ -152,7 +152,7 @@ function drawPlan(mode) {
   svg.innerHTML = html;
   $('.plan-cap').textContent = mode === 'weight'
     ? 'Copper bars show how wide each bin would be if sized by weight. The rubble bin would take a third of the station and fill a fraction of it, while cardboard and timber overflowed.'
-    : 'Lids off, from above. Each bin\'s width is its share of the loose volume a new home produces, rounded to whole 585 mm modules. The smallest bins are one module wide so they can still be loaded by hand.';
+    : 'Lids off, from above. Each bin is sized to the material it takes, with none narrower than 1,000 mm so offcuts and packaging fit through the flap.';
 }
 
 // ---------- house size ----------
@@ -160,7 +160,7 @@ function initHouse() {
   const r = $('#area'); if (!r) return;
   const upd = () => {
     const a = +r.value; $('#areaOut').textContent = a;
-    const t = a * MODEL.kgPerM2.central / 1000, v = t * MODEL.m3PerTonne, lifts = v / (MODEL.stationInternalM3 * 0.85);
+    const t = a * MODEL.kgPerM2.central / 1000, v = t * MODEL.m3PerTonne, lifts = v / MODEL.homeM3 * MODEL.changeovers;   // the truck comes when the first bin is full
     $('#tOut').textContent = fmt(t, 1) + ' t'; $('#vOut').textContent = fmt(v) + ' m³'; $('#lOut').textContent = fmt(lifts, 1);
     const skips = v / 6; const whole = Math.floor(skips);
     $('#skips').innerHTML = Array.from({ length: Math.ceil(skips) }, (_, i) => `<i class="${i >= whole ? 'part' : ''}"></i>`).join('');

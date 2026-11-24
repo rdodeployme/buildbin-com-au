@@ -42,12 +42,12 @@ order = ["timber", "general", "card", "plaster", "plastic", "eps", "rubble", "st
 GOES = {"plastic": "Wrap, film, strapping, pipe offcuts", "timber": "Framing offcuts, pallets, formwork", "plaster": "Clean offcuts, broken sheets",
         "card": "Boxes and packaging, flattened", "eps": "White packaging, clean offcuts", "rubble": "Bricks, concrete, tiles, pavers",
         "general": "Mixed offcuts, sweepings", "steel": "Offcuts, mesh, flashing, copper"}
-rows = "".join(f'<tr><td class="n">{S[k]["n"]:02d}</td><td><b>{S[k]["name"]}</b><small>{GOES[k]}</small></td><td>{S[k]["side"]}</td><td>{S[k]["modules"]}</td><td style="white-space:nowrap">{S[k]["lengthMm"]:,}</td><td>{S[k]["podNetM3"]:.1f} m³</td><td>{S[k]["volume"]:.0f}%</td></tr>' for k in order)
-net = model["stationInternalM3"]
+rows = "".join(f'<tr><td class="n">{S[k]["n"]:02d}</td><td><b>{S[k]["name"]}</b><small>{GOES[k]}</small></td><td>{S[k]["side"]}</td><td>{S[k]["fillsPerHome"]:.1f}</td><td style="white-space:nowrap">{S[k]["lengthMm"]:,}</td><td>{S[k]["usableM3"]:.1f} m³</td><td>{S[k]["volume"]:.0f}%</td></tr>' for k in order)
+net = model["stationUsableM3"]
 tare = sum(s["tareKg"] for s in model["streams"])
 
 LOGO = '<svg class="logo" viewBox="0 0 44 26" aria-hidden="true"><g fill="none" stroke="#C2804F" stroke-width="2"><rect x="1" y="1" width="42" height="24" rx="2.5"/><line x1="1" y1="13" x2="43" y2="13"/><line x1="19.2" y1="1" x2="19.2" y2="13"/><line x1="25.9" y1="1" x2="25.9" y2="13"/><line x1="29.7" y1="1" x2="29.7" y2="13"/><line x1="27.2" y1="13" x2="27.2" y2="25"/><line x1="31.3" y1="13" x2="31.3" y2="25"/><line x1="35.5" y1="13" x2="35.5" y2="25"/></g></svg>'
-def foot(n): return f'<footer>{LOGO}<b>Builders<i>Bins</i></b><span>Station Rev B · concept design · 20 October 2026</span><em>{n}</em></footer>'
+def foot(n): return f'<footer>{LOGO}<b>Builders<i>Bins</i></b><span>Station Rev B · concept design · 24 November 2026</span><em>{n}</em></footer>'
 
 html = f'''<!doctype html><html lang="en-AU"><head><meta charset="utf-8"><title>BuildersBins station — Rev B explainer</title>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -111,7 +111,7 @@ ul.ticks li b {{ color:var(--text) }}
     <p class="sub">Eight lidded steel bins on one hook-lift skid. Every material sorted on site, emptied by forklift without opening a lid.</p>
   </div>
   <div class="stats">
-    <div class="stat"><b>6.3 × 2.45 m</b><span>footprint, 2 m high max</span></div>
+    <div class="stat"><b>6 × 2.45 m</b><span>footprint, 2.5 m high max</span></div>
     <div class="stat"><b>8 bins</b><span>4 a side, sized by the data</span></div>
     <div class="stat"><b>~{net:.0f} m³</b><span>sorted, per change-over</span></div>
     <div class="stat"><b>4 mm steel</b><span>every side, lid, flap and door</span></div>
@@ -124,10 +124,10 @@ ul.ticks li b {{ color:var(--text) }}
   <div class="row" style="grid-template-columns:92mm 1fr;align-items:center">
     <div>
       <p style="font-size:13pt">A low hook-lift skid drops on the lot at slab and stays until handover. It carries <strong>eight separate steel bins, four a side</strong>, one for each material a new home throws out.</p>
-      <p style="margin-top:4mm">Each bin is sized by how much <strong>space</strong> its material takes up, not its weight, so they all fill at about the same rate. Timber gets the biggest bin; bricks, steel and polystyrene the smallest.</p>
+      <p style="margin-top:4mm">Each bin is sized by how much <strong>space</strong> its material takes up, not its weight. General rubbish and timber get the biggest bins, plastics and plasterboard 1,230, and cardboard, bricks, steel and polystyrene 1,000.</p>
       <ul class="ticks" style="margin-top:6mm">
         <li><b>Roof peaks in the middle</b> with a copper ridge line, sloping down and away so rain runs straight off</li>
-        <li><b>Drop-down front flap</b> from 1.2 m for loading</li>
+        <li><b>Drop-down front flap</b> from 1.2 m to a 2 m dump height</li>
         <li><b>Trap door</b> on the right side for emptying</li>
         <li><b>Fork pockets</b> framed in copper, so it's obvious where the forks go</li>
       </ul>
@@ -177,13 +177,13 @@ ul.ticks li b {{ color:var(--text) }}
   <p class="kick">Loading</p>
   <h2>Signed so nobody has to guess.</h2>
   <div class="row c2">
-    <div class="fig"><img src="{img['flap']}" alt=""><div class="cap"><b>Drop-down flap</b>Hinged at 1.2 m, closes under the lid at 1.9 m, sits level as a loading ledge</div></div>
+    <div class="fig"><img src="{img['flap']}" alt=""><div class="cap"><b>Drop-down flap</b>Hinged at 1.2 m, closes at 2 m under a fixed panel, sits level as a loading ledge</div></div>
     <div class="fig"><img src="{img['signs']}" alt=""><div class="cap"><b>Sign plates</b>Number, material, what goes in and what stays out</div></div>
   </div>
   <div class="notes">
     <div><b>Big numbers</b>Every bin is numbered 01 to 08 on its sign and on its flap.</div>
     <div><b>Yes and no</b>Each plate lists what goes in and what doesn't.</div>
-    <div><b>Easy reach</b>Flaps open from 1.2 m. No steps, no climbing.</div>
+    <div><b>Easy reach</b>Flaps open from 1.2 m to 2 m. Nothing lifted above 2 m, no steps, no climbing.</div>
     <div><b>No hazardous waste</b>No asbestos, chemicals or gas bottles, signed on the skid.</div>
   </div>
   {foot(6)}
@@ -197,7 +197,7 @@ ul.ticks li b {{ color:var(--text) }}
     <div style="display:grid;grid-template-rows:1fr auto;gap:5mm;min-height:0">
       <div class="fig"><img src="{img['door']}" alt=""><div class="cap"><b>Trap door</b>Right-hand side, hinged along the top, latched at the bottom</div></div>
       <ul class="ticks">
-        <li><b>1.</b> Forks go into the two copper-framed pockets in the base, clear over the skid's 100 mm rail.</li>
+        <li><b>1.</b> Forks go into the two copper-framed tunnels near the floor, clear over the skid's 100 mm rail.</li>
         <li><b>2.</b> Lift, weigh, and turn the bin to the right.</li>
         <li><b>3.</b> Trap door swings open, load slides out, bin goes back.</li>
       </ul>
@@ -229,13 +229,13 @@ ul.ticks li b {{ color:var(--text) }}
   <h2>Sized by what a new home throws out.</h2>
   <div class="row" style="grid-template-columns:1.35fr 1fr">
     <div>
-      <table><thead><tr><th>Bin</th><th>Material and what goes in</th><th>Side</th><th>Modules</th><th>Width mm</th><th>Holds</th><th>Of the space</th></tr></thead><tbody>{rows}</tbody></table>
-      <p style="margin-top:2mm;font-size:9pt">Each side is ten 585 mm modules. Bins can be built 1 to 6 modules wide to suit an estate. Volumes are estimates from published studies until pilot weighbridge data replaces them.</p>
+      <table><thead><tr><th>Bin</th><th>Material and what goes in</th><th>Side</th><th>Fills per home</th><th>Width mm</th><th>Holds</th><th>Of the space</th></tr></thead><tbody>{rows}</tbody></table>
+      <p style="margin-top:2mm;font-size:9pt">No bin is narrower than 1,000 mm. Usable space counts each bin full at 2.15 m. Volumes are estimates from published studies until pilot weighbridge data replaces them.</p>
     </div>
     <div style="display:grid;grid-template-rows:auto 1fr;gap:5mm;min-height:0">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:4mm">
         <div class="big2">{net:.1f} m³<small>sorted per change-over</small></div>
-        <div class="big2">2.4<small>change-overs for a typical 240 m² home</small></div>
+        <div class="big2">{model["changeovers"]:.1f}<small>change-overs for a typical 240 m² home</small></div>
       </div>
       <div class="card"><img src="ga_section.png" alt="Section across the skid with key heights"></div>
     </div>
@@ -250,16 +250,16 @@ ul.ticks li b {{ color:var(--text) }}
     <div class="card"><img src="ga_bin.png" alt="Typical bin front and right side with dimensions"></div>
     <div>
       <table><tbody>
-        <tr><td><b>Overall</b></td><td>6,300 × 2,450, max 2,000 high</td></tr>
+        <tr><td><b>Overall</b></td><td>6,000 × 2,450, max 2,500 high</td></tr>
         <tr><td><b>Bin depth</b></td><td>1,150</td></tr>
-        <tr><td><b>Bin widths</b></td><td>565 to 3,490 (modules × 585 − 20)</td></tr>
-        <tr><td><b>Roof</b></td><td>2,000 ridge in the middle, 1,900 at the front</td></tr>
-        <tr><td><b>Flap</b></td><td>Hinged at 1,200, closes at 1,900</td></tr>
+        <tr><td><b>Bin widths</b></td><td>1,000 to 2,470 (1,000 / 1,230 / 2,010 / 2,470)</td></tr>
+        <tr><td><b>Roof</b></td><td>2,500 ridge in the middle, 2,400 at the front</td></tr>
+        <tr><td><b>Flap</b></td><td>Hinged at 1,200, opening to 2,000 (dump height)</td></tr>
         <tr><td><b>Fork pockets</b></td><td>200 above the bin base</td></tr>
         <tr><td><b>Skid rail</b></td><td>100 high, edges and centre</td></tr>
-        <tr><td><b>Trap door</b></td><td>About 1,030 × 1,340, top-hinged</td></tr>
+        <tr><td><b>Trap door</b></td><td>About 1,030 × 1,900, top-hinged</td></tr>
         <tr><td><b>Steel</b></td><td>4 mm plate throughout</td></tr>
-        <tr><td><b>Bins tare</b></td><td>About {tare/1000:.1f} t for eight (estimate)</td></tr>
+        <tr><td><b>Bins tare</b></td><td>About {tare/1000:.1f} t for eight (steel, from the CAD)</td></tr>
       </tbody></table>
       <p style="margin-top:3mm;font-size:9.5pt">Millimetres. Heights from the ground with bins on the skid. Full drawings and schedule in the fabricator spec.</p>
     </div>
@@ -273,7 +273,7 @@ ul.ticks li b {{ color:var(--text) }}
   <div class="row c2">
     <ul class="ticks">
       <li><b>Hook trucks.</b> Hook height, runner spacing and rollers, and that a 100 mm deck works on our fleet.</li>
-      <li><b>Narrow bins.</b> The three 565 mm bins are 1.9 m tall: check them on forks and when tipping.</li>
+      <li><b>Narrow, tall bins.</b> The 1,000 mm bins are 2.4 m tall: check them on forks and when tipping. The rubble bin needs a fill line at its rated load.</li>
       <li><b>Weight.</b> Real tare of the skid and each bin against the truck's hook-lift rating.</li>
       <li><b>Hardware.</b> Locks, lights, siren and the 4G option, priced.</li>
       <li><b>Sign-off.</b> Structural engineer certifies the skid, pockets and trap door latches.</li>

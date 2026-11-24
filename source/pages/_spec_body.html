@@ -2,7 +2,7 @@
 <div class="page-hero"><div class="wrap">
   <p class="kicker">Fabricator spec · Rev B · 20 October 2026</p>
   <h1>Build it to this.</h1>
-  <p>A low hook-lift skid carrying eight stand-alone 4 mm steel bins, four per side, no higher than 2 m and no longer than 6.3 m. Each bin has a hard lid, a drop-down front flap and a trap door on its right-hand side for emptying. Change the bin sizes below and every drawing, dimension and quantity updates. Print it or save it as a PDF to send with a quote request.</p>
+  <p>A low hook-lift skid carrying eight stand-alone 4 mm steel bins, four per side, no higher than 2.5 m and no longer than 6 m, loaded through flaps that top out at a 2 m dump height. Each bin has a hard lid, a drop-down front flap and a trap door on its right-hand side for emptying. Change the bin sizes below and every drawing, dimension and quantity updates. Print it or save it as a PDF to send with a quote request.</p>
   <div class="cta-row" style="margin-top:28px"><button type="button" class="btn btn-cu" id="printBtn">Print / Save as PDF</button><button type="button" class="btn btn-ghost" id="linkBtn">Copy link to this layout</button><a class="btn btn-ghost" href="downloads/BuildersBins-fabrication-pack-RevB.zip" download>Download fabrication pack (STEP, DXF, drawings)</a></div>
   <p class="status-key"><span class="st st-b">Design basis</span> set by this design &nbsp; <span class="st st-p">Proposed</span> our starting point, the fabricator can improve it &nbsp; <span class="st st-t">To confirm</span> needs the fabricator, engineer or operator</p>
 </div></div>
@@ -10,7 +10,7 @@
 <section class="cfg-sec" aria-labelledby="cfgTitle">
   <div class="wrap">
     <div class="sec-head"><h2 id="cfgTitle">1. Set the bin sizes</h2>
-    <p>Four bins per side. Each side of the skid is ten 585 mm modules, and a bin is one to six modules wide. Use + and − to resize a bin, the arrows to move it along its side, and ⇄ to swap it with the bin opposite. Free modules show as gaps until you give them to a bin.</p></div>
+    <p>Four bins per side. Each side of the skid takes 5,470 mm of bins plus 20 mm gaps. A bin can be 1,000 to 3,500 wide. Use + and − to resize a bin by 50 mm, the arrows to move it along its side, and ⇄ to swap it with the bin opposite. Free modules show as gaps until you give them to a bin.</p></div>
     <div class="cfg-top">
       <div class="presets" role="group" aria-label="Layouts">
         <button type="button" data-preset="default" class="chip is-on">Data-sized (default)</button>
@@ -41,9 +41,9 @@
 
 <section class="paper-sec" aria-labelledby="schTitle">
   <div class="wrap">
-    <div class="sec-head"><h2 id="schTitle">3. Bin schedule</h2><p>Bin sizes follow from the module count. Tare is an estimate from 4 mm plate plus 25% for the base, pockets and frames. Full load uses loose densities from BRANZ REBRI (see <a href="method.html">how it's sized</a>). Where a full bin would pass its rated load, the schedule gives a painted fill line.</p></div>
+    <div class="sec-head"><h2 id="schTitle">3. Bin schedule</h2><p>Each bin's "fills per home" is how many times it reaches 85% full on a 240 m² home; the highest sets the number of change-overs. Tare is the steel weight from the CAD model (welds, paint and hardware extra). Full load uses loose densities from BRANZ REBRI (see <a href="method.html">how it's sized</a>). Where a full bin would pass its rated load, the schedule gives a painted fill line.</p></div>
     <div class="tscroll"><table class="sched" id="sched"></table></div>
-    <p class="src" style="margin-top:12px">Bin width = modules × 585 − 20 (10 mm clearance each side). Depth 1,140 (5 mm clear of each rail). Height from the bin base: 1,800 at the front, 1,900 at the back (the ridge). Internal: less 4 mm plate each side, floor 400 above the ground on the skid.</p>
+    <p class="src" style="margin-top:12px">Bins have 20 mm between them (10 mm rubber buffers on each side wall). Depth 1,140 (5 mm clear of each rail). Height from the bin base: 2,300 at the front, 2,400 at the back (the ridge). Internal: less 4 mm plate each side, floor top 180 above the ground on the skid. "Usable" counts each bin full at 2,150 above the ground (the 2,000 opening plus the heap behind it), less the two fork tunnels.</p>
   </div>
 </section>
 
@@ -53,44 +53,44 @@
     <div class="clauses" id="clauses">
 
 <article class="wide"><h3>4.1 Fixed requirements and how this design meets them</h3><ul>
-<li><span class="st st-b">Design basis</span><b>No higher than 2,000.</b> The lids meet at a 2,000 ridge down the middle of the skid and fall to 1,900 at the front edge. Hook frame, lights and siren stay under 2,000.</li>
-<li><span class="st st-b">Design basis</span><b>No longer than 6,300, four bins per side.</b> Skid 6,300 overall: 150 rear zone for the rollers, 5,850 of bins (ten 585 mm modules), 300 hook zone.</li>
-<li><span class="st st-b">Design basis</span><b>Drop-down front flap from 1,200.</b> Bottom-hinged at 1,200, closes under the lid's front edge at 1,900. With the ridge at 2,000, the front edge sits 100 lower, so the flap tops out at 1,900, not 2,000.</li>
+<li><span class="st st-b">Design basis</span><b>No higher than 2,500.</b> The lids meet at a 2,500 ridge down the middle of the skid and fall to 2,400 at the front edge. Hook frame, lights and siren stay under 2,500.</li>
+<li><span class="st st-b">Design basis</span><b>No longer than 6,000, four bins per side.</b> Skid 6,000 overall: 150 rear zone for the rollers, 5,550 of bins, 300 hook zone.</li>
+<li><span class="st st-b">Design basis</span><b>Drop-down front flap from 1,200 to a 2,000 dump height.</b> Bottom-hinged at 1,200 (about waist height) and 800 high, so nothing has to be lifted above 2,000. A fixed 4 mm panel closes the front from 2,000 up to the lid, with a folded drip over the flap.</li>
 <li><span class="st st-b">Design basis</span><b>Fork pockets 200 off the ground, bins behind a 100 rail.</b> Pocket underside 200 above the bin base: 200 off the ground when a bin stands on the ground, and 300 on the skid, so forks pass 100 clear over the skid's 100 rail.</li>
 <li><span class="st st-b">Design basis</span><b>Hard lid and a side trap door to empty.</b> Fixed 4 mm lid. Trap door on the right-hand side as you face the flap, hinged along its top edge.</li>
-<li><span class="st st-b">Design basis</span><b>Water runs off the roof.</b> Highest in the middle: each lid falls 100 from the ridge (2,000) to its front edge (1,900), like a gable roof, so nothing ponds. The lid overhangs 20 and turns down 40 as a drip edge, throwing run-off clear of the flaps.</li>
+<li><span class="st st-b">Design basis</span><b>Water runs off the roof.</b> Highest in the middle: each lid falls 100 from the ridge (2,500) to its front edge (2,400), like a gable roof, so nothing ponds. The lid overhangs 20 and turns down 40 as a drip edge, throwing run-off clear of the flaps.</li>
 <li><span class="st st-b">Design basis</span><b>4 mm all sides.</b> Floor, front, back, both sides, lid, flap and trap door in 4 mm plate.</li>
 </ul></article>
 
 <article><h3>4.2 Overall dimensions</h3><ul id="dimList"></ul></article>
 
 <article><h3>4.3 Hook skid</h3><ul>
-<li><span class="st st-b">Design basis</span>Low skid 6,300 × 2,450, deck top 100 above the ground, with a hook A-frame in the front 300 and rear rollers in the back 150.</li>
-<li><span class="st st-b">Design basis</span><b>Kerb rails that can't be bent.</b> RHS 100 × 50 × 6 (C350), standing 100 high, along both outer edges and down the centre for the full 5,850 bin zone, plus an RHS rear stop. Continuously fillet-welded both sides to the 10 mm deck, ends capped and chamfered.</li>
+<li><span class="st st-b">Design basis</span>Low skid 6,000 × 2,450, deck top 100 above the ground, with a hook A-frame in the front 300 and rear rollers in the back 150.</li>
+<li><span class="st st-b">Design basis</span><b>Kerb rails that can't be bent.</b> RHS 100 × 50 × 6 (C350), standing 100 high, along both outer edges and down the centre for the full 5,550 bin zone, plus an RHS rear stop. Continuously fillet-welded both sides to the 10 mm deck, ends capped and chamfered.</li>
 <li><span class="st st-b">Design basis</span>Bins sit 5 mm clear of the rails on each side, so they drop in without binding but can't move more than 5 mm across. Forks enter the pockets 100 above the rail top, so the forks never touch the rail.</li>
 <li><span class="st st-p">Proposed</span>10 mm rubber buffer strips on both side walls of every bin take up the 20 mm gaps between bins, so the row of four packs tight between the rear stop and the hook-end stop and can't slide on the road.</li>
 <li><span class="st st-p">Proposed</span>Two SHS 89 × 89 × 6 runners and SHS 89 × 89 × 5 cross-members under a 10 mm plate deck (deck top 99), with 30 mm drain holes beside every rail so water on the deck drains away.</li>
-<li><span class="st st-t">To confirm</span>Runner spacing, hook height (about 1,450 shown), roller size and whether a 100 deck suits the operator's hook trucks. If the fleet needs taller runners, every height on this sheet rises by the same amount, so the bins would have to drop to stay under 2,000.</li>
+<li><span class="st st-t">To confirm</span>Runner spacing, hook height (about 1,450 shown), roller size and whether a 100 deck suits the operator's hook trucks. If the fleet needs taller runners, every height on this sheet rises by the same amount, so the bins would have to drop to stay under 2,500.</li>
 </ul></article>
 
 <article><h3>4.4 Bins</h3><ul>
-<li><span class="st st-b">Design basis</span>Eight stand-alone steel bins, 1,140 deep, one to six modules wide. Any bin can be swapped for a spare of the same width.</li>
-<li><span class="st st-b">Design basis</span>Base 300 high: two runners under the side walls, then two fork pockets 200 wide × 100 high running front to back, underside 200 above the bin base. Floor 300 above the bin base (400 above the ground on the skid).</li>
+<li><span class="st st-b">Design basis</span>Eight stand-alone steel bins, 1,140 deep, 1,000 to 3,500 wide. Any bin can be swapped for a spare of the same width.</li>
+<li><span class="st st-b">Design basis</span>Two RHS 75 × 50 runners under the side walls and two floor bearers carry the floor 80 above the bin base (180 above the ground on the skid). Two fork tunnels run front to back inside the bin: 200 wide × 100 high, underside 200 above the bin base, closed down to the floor with a sloped top so loads slide off when the bin is tipped.</li>
 <li><span class="st st-p">Proposed</span>4 mm plate on a folded or light angle frame at the corners and openings so the walls stay flat when full. Fork pocket centres about 55% of the bin width, between 300 and 1,000.</li>
 <li><span class="st st-b">Design basis</span>Base enclosed in 4 mm plate all round, with the two pocket mouths cut through the front and back plates and framed in copper so the forklift driver can see exactly where the forks go.</li>
 <li><span class="st st-p">Proposed</span>Every bin rated to the same load (selected above), so any bin can take any stream. Rated load and fill line painted inside.</li>
-<li><span class="st st-t">To confirm</span>Stability of one-module bins (565 wide, up to 1,900 high) on forks and when tipping. A wider fork carriage or a clamp may be needed.</li>
+<li><span class="st st-t">To confirm</span>Stability of 1,000 wide bins (2,400 high; the rubble bin would hold about 2.3 t to the 2,150 line, so it gets a painted fill line at its rated load) on forks and when tipping. A wider fork carriage or a clamp may be needed.</li>
 </ul></article>
 
 <article><h3>4.5 Hard lid and water</h3><ul>
-<li><span class="st st-b">Design basis</span>Fixed 4 mm lid, welded, highest at the back edge where the two rows meet (2,000), falling 100 to the front edge (1,900).</li>
+<li><span class="st st-b">Design basis</span>Fixed 4 mm lid, welded, highest at the back edge where the two rows meet (2,500), falling 100 to the front edge (2,400).</li>
 <li><span class="st st-b">Design basis</span>The roof reads as one gable: each lid rises from its front edge to the ridge down the middle, with a copper ridge line along the top.</li>
 <li><span class="st st-p">Proposed</span>Lid overhangs 20 and turns down 40 at the front as a drip edge, over the top of the closed flap, so rain runs off clear of the opening. A capping strip along the ridge covers the gap between the two rows.</li>
 <li><span class="st st-p">Proposed</span>Floor drain hole with a plug at the lowest corner so plasterboard and cardboard can be drained before tipping.</li>
 </ul></article>
 
 <article><h3>4.6 Drop-down front flap</h3><ul>
-<li><span class="st st-b">Design basis</span>One flap per bin, bottom-hinged at 1,200, closing to 1,900 under the lid edge. Flap the bin width less 72, about 666 high, with 25 folded edges.</li>
+<li><span class="st st-b">Design basis</span>One flap per bin, bottom-hinged at 1,200, closing to 2,000 under the fixed upper panel. Flap the bin width less 72, about 796 high, with 25 folded edges.</li>
 <li><span class="st st-p">Proposed</span>Two check chains or stays hold the flap level as a loading ledge for sheets and offcuts. Unclip them and the flap hangs straight down against the front.</li>
 <li><span class="st st-p">Proposed</span>Folded edges for stiffness, rubber buffers where it meets the front, and no pinch point at the hinge.</li>
 </ul></article>
@@ -105,7 +105,7 @@
 <article class="wide"><h3>4.8 Locking, lights and alarm</h3><ul>
 <li><span class="st st-b">Design basis</span>One system run from one phone app over Bluetooth: a lock on every flap, three motion-sensor lights and an alarm that arms itself on a schedule. No rods, bars or padlocks.</li>
 <li><span class="st st-b">Design basis</span><b>Locks.</b> A battery smart latch on each bin's lid lip holds the flap shut. Bins come off the skid, so the locks are self-contained with no wiring. One tap locks or unlocks all eight, and every opening is logged.</li>
-<li><span class="st st-b">Design basis</span><b>Sensor lights.</b> Two LED floodlights on an arm at the top of the hook frame, one raking along each side, and one on a rear post. All under 2,000 and fixed to the skid, so they stay when bins are lifted off.</li>
+<li><span class="st st-b">Design basis</span><b>Sensor lights.</b> Two LED floodlights on an arm at the top of the hook frame, one raking along each side, and one on a rear post. All under 2,500 and fixed to the skid, so they stay when bins are lifted off.</li>
 <li><span class="st st-b">Design basis</span><b>Alarm.</b> The siren arms for chosen hours, for example 6 pm to 6 am on weekdays and all weekend. While armed, a flap opening, a forced lock or a tamper on the controller sets it off and the lights flash.</li>
 <li><span class="st st-p">Proposed</span>Controller, battery, siren and keyed override on the hook frame. Lights angled down so they don't shine into neighbours' windows. Siren run time limited, with automatic reset.</li>
 <li><span class="st st-t">To confirm</span>Bluetooth only reaches a phone nearby. For alarm alerts to the supervisor's phone when nobody is on site, the controller needs a 4G module and a data plan.</li>

@@ -27,6 +27,8 @@ MOD = G["module"]                        # 585
 NMOD = 10
 GAP = G["gap"]                           # 20 between bins
 CL = G["clear"]                          # 5 to rails
+PX = L - 139.5                           # hook posts (x of the post's rear face)
+LIGHT_TOP = 2450                         # light mast and rear post tops
 HOOK_Z = 1450                            # hook bar height above deck (to suit fleet)
 ROLLER = (140, 200)                      # dia x width
 
@@ -36,22 +38,29 @@ D = round(G["depth"])                    # 1140
 HF = G["front_top"] - DECK_NOM               # 1800 bin height at the front (lid front edge)
 HB = G["back_top"] - DECK_NOM                # 1900 at the back (ridge side)
 FB = G["flap_bot"] - DECK_NOM                # 1100 flap hinge above bin base
+FTOP_B = G.get("flap_top", G["front_top"]) - DECK_NOM   # 1900 top of the loading opening above bin base (2.0 m dump height)
+FILL_B = G.get("fill_top", G["front_top"]) - DECK_NOM   # 2050 planning fill line above bin base
 POCKET_IN = (200, 100)                   # fork pocket internal w x h
 POCKET_T = 6
 POCKET_Z = G["pocket_bot"] - DECK_NOM        # 200 pocket underside above bin base
-FLOOR_Z = POCKET_Z + POCKET_IN[1] + POCKET_T   # 306 floor plate underside
+FLOOR_Z = 75                                   # floor plate underside, on the 75 base runners (floor top 79)
+TUN_TOP = POCKET_Z + POCKET_IN[1] + POCKET_T   # 306 top of the fork tunnel inside the bin
 FLAP_SIDE = 35                           # flap inset each side
 FLAP_TOP_GAP = 32                        # flap stops under the drip lip
 DRIP = (20, 40)                          # lid overhang in front of the face, drip turn-down
 BACK_FOLD = 44
-DOOR_OPEN = (75, 1065, 380, 1680)        # trap door opening: y0, y1, z0, z1 (right side)
-DOOR = (55, 1085, 360, 1700)             # door leaf (20 lap all round)
+DOOR_OPEN = (75, 1065, 140, 2000)        # trap door opening: y0, y1, z0, z1 (right side)
+DOOR = (55, 1085, 120, 2020)             # door leaf (20 lap all round)
 FRAME_W, FRAME_T = 25, 6                 # copper frame round pocket mouths (front)
 BUFFER = (10, 40)                        # rubber buffer strip thickness, width
 STEEL = 7850e-9                          # kg/mm3
 
 
-def width(n): return n * MOD - GAP
+def width(n): return n * MOD - GAP          # n = 5 mm units incl. the 20 mm gap
+def tag(n): return f"{width(n):.0f}"
+DRAIN_PITCH, NDRAIN = 585, 10               # deck drain holes, one pair per 585 along each rail
+def used_by(n):
+    return [STREAMS[i]["name"] for side in ("A", "B") for i in SIDES[side] if STREAMS[i]["modules"] == n]
 def pocket_centres(w):
     pc = max(300, min(1000, w * 0.55))
     return [w / 2 - pc / 2, w / 2 + pc / 2]

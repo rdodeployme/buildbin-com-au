@@ -65,13 +65,16 @@ def bin_parts(n):
     P["back plate"] = (bp, "plate", "4 mm plate", STEEL)
 
     side = [(0, 0), (D, 0), (D, ztD), (0, zt0)]
-    P["side plate, left"] = (yz_prism(side, 0, T).union(box(T, 35, 0, T, FB, zt0)), "plate", "4 mm plate", STEEL)
-    rs = yz_prism(side, w - T, T).union(box(w - 35, w - T, 0, T, FB, zt0))
+    P["side plate, left"] = (yz_prism(side, 0, T).union(box(T, 35, 0, T, FB, FTOP_B)), "plate", "4 mm plate", STEEL)
+    rs = yz_prism(side, w - T, T).union(box(w - 35, w - T, 0, T, FB, FTOP_B))
     y0, y1, z0, z1 = DOOR_OPEN
     rs = rs.cut(box(w - T - 1, w + 1, y0, y1, z0, z1))
     P["side plate, right (door)"] = (rs, "plate", "4 mm plate", STEEL)
 
     P["floor plate"] = (box(T, w - T, T, D - T, FLOOR_Z, FLOOR_Z + T), "plate", "4 mm plate", STEEL)
+    # fixed panel above the loading opening (2.0 m dump height) with a folded drip over the flap
+    up = box(T, w - T, 0, T, FTOP_B, zt0).union(box(T, w - T, -20, 0, FTOP_B - T, FTOP_B)).union(box(T, w - T, -20, -20 + T, FTOP_B - 30, FTOP_B))
+    P["upper front panel"] = (up, "plate", "4 mm plate", STEEL)
 
     # lid: sloped plate + front drip
     oh, dr = DRIP
@@ -80,7 +83,7 @@ def bin_parts(n):
     P["lid"] = (lid, "plate", "4 mm plate", STEEL)
 
     # flap: panel in the front plane with 25 folds on sides and top
-    fx0, fx1, ftop = 36, w - 36, zt0 - 30
+    fx0, fx1, ftop = 36, w - 36, FTOP_B - T
     fl = box(fx0, fx1, 0, T, FB, ftop)
     fl = fl.union(box(fx0, fx0 + T, T, 29, FB, ftop)).union(box(fx1 - T, fx1, T, 29, FB, ftop))
     fl = fl.union(box(fx0, fx1, T, 29, ftop - T, ftop))
@@ -99,16 +102,25 @@ def bin_parts(n):
     pk = None
     for cx in pcs:
         a, b = cx - 100 - POCKET_T, cx + 100 + POCKET_T
-        p = box(a, b, T, D - T, POCKET_Z - POCKET_T, POCKET_Z)                       # bottom
+        fz = FLOOR_Z + T
+        p = box(cx - 100, cx + 100, T, D - T, POCKET_Z - POCKET_T, POCKET_Z)       # fork-bearing bottom
         p = p.union(box(a, b, T, D - T, POCKET_Z + 100, POCKET_Z + 100 + POCKET_T))  # top
-        p = p.union(box(a, cx - 100, T, D - T, POCKET_Z, POCKET_Z + 100))           # webs
-        p = p.union(box(cx + 100, b, T, D - T, POCKET_Z, POCKET_Z + 100))
+        p = p.union(box(a, cx - 100, T, D - T, fz, POCKET_Z + 100))                 # webs, down to the floor
+        p = p.union(box(cx + 100, b, T, D - T, fz, POCKET_Z + 100))
+        tt = TUN_TOP
+        cov = [(a, tt), (cx, tt + 50), (b, tt), (b - 6, tt), (cx, tt + 50 - 5), (a + 6, tt)]   # sloped cover so loads slide off when tipped
+        p = p.union(cq.Workplane("XZ", origin=(0, D - T, 0)).polyline(cov).close().extrude(D - 2 * T))
         pk = p if pk is None else pk.union(p)
     P["fork pockets"] = (pk, "pocket", "6 mm plate", STEEL)
 
     # base runners inside the side walls (bear on the deck)
     P["base runners"] = (rhs_y(T, D - T, T, 0, 50, 75, 4).union(rhs_y(T, D - T, w - T - 50, 0, 50, 75, 4)),
                          "plate", "RHS 75x50x4", STEEL)
+    fb = None
+    for yc in (D / 3, 2 * D / 3):
+        r = rhs_x(T + 50, w - T - 50, yc - 25, 0, 50, 75, 4)
+        fb = r if fb is None else fb.union(r)
+    P["floor bearers"] = (fb, "plate", "RHS 75x50x4", STEEL)
 
     # copper pocket-mouth frames, laser cut from 6 mm plate
     fr = None
@@ -124,7 +136,7 @@ def bin_parts(n):
     bu = None
     for xa, xb in ((-bt, 0), (w, w + bt)):
         for ya in (10, D - 10 - bw):
-            b = box(xa, xb, ya, ya + bw, 400, 1700)
+            b = box(xa, xb, ya, ya + bw, 400, 2000)
             bu = b if bu is None else bu.union(b)
     P["rubber buffers"] = (bu, "rubber", "rubber 10 x 40", RUBBER)
     return P
@@ -156,8 +168,8 @@ def skid_parts():
 
     deck = box(0, L, -hy, hy, SHS, DECK)
     holes = []
-    for k in range(NMOD):
-        xc = X0 + (k + 0.5) * MOD
+    for k in range(NDRAIN):
+        xc = X0 + (k + 0.5) * DRAIN_PITCH
         for yc in (hy - RAIL[0] - 40, -hy + RAIL[0] + 40, RAIL[0] / 2 + 40, -RAIL[0] / 2 - 40):
             holes.append((xc, yc))
     for xc, yc in holes:
@@ -192,7 +204,7 @@ def skid_parts():
     P["roller brackets"] = (br, "skid", "12 mm plate", STEEL)
 
     # hook A-frame
-    px = 6160.5
+    px = PX
     posts, braces = None, None
     for yc in (-450, 450):
         p = rhs_z(DECK, 1500, px, yc - SHS / 2, SHS, SHS, 6)
@@ -214,9 +226,9 @@ def skid_parts():
     P["hook gussets"] = (gus, "skid", "20 mm plate", STEEL)
     hb = cq.Workplane("XZ", origin=(0, 350, 0)).center(px + SHS + 65, 1450).circle(25).extrude(700)
     P["hook bar"] = (hb, "hw", "50 dia round bar", STEEL)
-    mast = rhs_z(1589, 1950, px + 20, -25, 50, 50, 3)
+    mast = rhs_z(1589, LIGHT_TOP, px + 20, -25, 50, 50, 3)
     P["light mast"] = (mast, "skid", "SHS 50x50x3", STEEL)
-    P["rear light post"] = (rhs_z(DECK, 1950, 30, -25, 50, 50, 3), "skid", "SHS 50x50x3", STEEL)
+    P["rear light post"] = (rhs_z(DECK, LIGHT_TOP, 30, -25, 50, 50, 3), "skid", "SHS 50x50x3", STEEL)
     return P
 
 
@@ -229,7 +241,7 @@ def to_assy(parts, name):
 
 
 def bin_assy(n):
-    return to_assy(bin_parts(n), f"BB-BIN-{n}M")
+    return to_assy(bin_parts(n), f"BB-BIN-{tag(n)}")
 
 
 def station_assy():
@@ -244,14 +256,14 @@ def station_assy():
             loc = cq.Location(cq.Vector(x0, -(W / 2 - RAIL[0] - CL), DECK))
         else:
             loc = cq.Location(cq.Vector(x0 + w, W / 2 - RAIL[0] - CL, DECK), cq.Vector(0, 0, 1), 180)
-        st.add(cache[n], name=f"bin_{side}_{sid}_{n}M", loc=loc)
+        st.add(cache[n], name=f"bin_{side}_{sid}_{tag(n)}", loc=loc)
     return st
 
 
 if __name__ == "__main__":
     os.makedirs(f"{OUT}/STEP", exist_ok=True)
     for n in SIZES:
-        bin_assy(n).export(f"{OUT}/STEP/BB-BIN-{n}M.step")
+        bin_assy(n).export(f"{OUT}/STEP/BB-BIN-{tag(n)}.step")
         print("bin", n, "ok", round(sum(mass(wp, d) for wp, _c, _m, d in bin_parts(n).values()), 1), "kg")
     to_assy(skid_parts(), "BB-SKID").export(f"{OUT}/STEP/BB-SKID.step")
     print("skid ok", round(sum(mass(wp, d) for wp, _c, _m, d in skid_parts().values()), 1), "kg")

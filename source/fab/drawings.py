@@ -1,5 +1,5 @@
 """A3 PDF drawing set for BuildersBins Rev B (third-angle projection, mm)."""
-import math
+import math, textwrap
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -136,7 +136,7 @@ def sheet_cover(pdf, total):
     View(sh, vis, s, 18 - bx0 * s, 50 - by0 * s, lw=0.45)
     a = sh.ax
     a.text(18, 272, "BuildersBins station", fontproperties=ARCH, fontsize=26, color=INK, va="top")
-    a.text(18, 259, "Fabrication drawings · Rev B · eight 4 mm steel bins on a 6.3 m hook skid", fontsize=12, color=GREY, va="top")
+    a.text(18, 259, f"Fabrication drawings · Rev B · eight 4 mm steel bins on a {L / 1000:.1f} m hook skid", fontsize=12, color=GREY, va="top")
     a.plot([18, 90], [253, 253], color=COP, lw=2.2)
     box_text(sh, 255, 272, 150, [
         "1. Concept design for quotation. The fabricator prepares",
@@ -149,7 +149,7 @@ def sheet_cover(pdf, total):
         "4. DXF flats are outside-dimension nets. Apply your own",
         "   bend deductions.",
         "5. Heights from the ground: deck top 99 (SHS 89 + 10 plate),",
-        "   ridge 1,999, lid front edge 1,899.",
+        f"   ridge {DECK + HB:,.0f}, lid front edge {DECK + HF:,.0f}, opening top {DECK + FTOP_B:,.0f}.",
         "6. Hook, rollers and runner spacing to suit the operator's",
         "   hook-lift fleet. Confirm before cutting.",
         "7. Finish charcoal; copper #C2804F on rails and pocket frames.",
@@ -168,35 +168,35 @@ def sheet_ga(pdf, total):
     s = 1 / 30
     st = cad.station_assy().toCompound()
     top, _ = project(st, "top")
-    vp = place(sh, top, s, 40, 175)
+    vp = place(sh, top, s, 40, 186)
     vp.label(L / 2, -W / 2 - 160, "PLAN", "Hook end on the right")
     vp.dimh(0, L, W / 2 + 260, W / 2, W / 2)
     vp.dimv(-W / 2, W / 2, -250, 0, 0)
     for side, sid, n, x0 in layout():
         w = width(n)
         yc = 600 if side == "A" else -600
-        vp.note(x0 + w / 2, yc, f"{STREAMS[sid]['name'] if 'name' in STREAMS[sid] else sid}\n{n}M · {w:,.0f}", ha="center", fs=7.5, va="center", color=GREY, rotation=90 if n == 1 else 0)
+        vp.note(x0 + w / 2, yc, f"{STREAMS[sid]['name']}\n{w:,.0f}", ha="center", fs=7.5, va="center", color=GREY, rotation=90 if w < 1000 else 0)
     vp.note(-200, W / 2 - 300, "SIDE A", ha="right", fs=9, weight="bold")
     vp.note(-200, -W / 2 + 200, "SIDE B", ha="right", fs=9, weight="bold")
 
     fr, _ = project(st, "front")
-    ve = place(sh, fr, s, 40, 75)
+    ve = place(sh, fr, s, 40, 62)
     ve.label(L / 2, -150, "SIDE B ELEVATION")
     ve.dimv(0, DECK, -150, 0, 0, left=True)
     ve.dimv(0, DECK + HF, -450, 0, 0)
     ve.dimv(0, DECK + HB, -750, None, None, txt=f"{DECK + HB:,.0f} ridge")
     ve.dimv(0, DECK + FB, L + 180, L, L, left=False)
-    xs = [x for side, _s, _n, x in layout() if side == "B"] + [XH - GAP / 2]
-    for a_, b_ in zip(xs[:-1], xs[1:]):
-        ve.dimh(a_, b_ - GAP, DECK + HF + 160, None, None)
+    for side, _s, n_, x_ in layout():
+        if side == "B":
+            ve.dimh(x_, x_ + width(n_), DECK + HF + 160, None, None)
 
     en, _ = project(st, ((1, 0, 0), (0, 1, 0)))
-    vx = place(sh, en, s, 300, 75)
+    vx = place(sh, en, s, 300, 62)
     vx.label(0, -150, "HOOK-END VIEW")
     vx.dimh(-W / 2, W / 2, -60, None, None)
     vx.dimv(0, 1450, W / 2 + 180, None, None, left=False, txt="1,450 hook")
-    vx.dimv(0, 1950, W / 2 + 380, None, None, left=False, txt="1,950 light")
-    box_text(sh, 330, 268, 75, ["Overall 6,300 x 2,450 x 1,999", "Bins 1,140 deep, 4 per side",
+    vx.dimv(0, LIGHT_TOP, W / 2 + 380, None, None, left=False, txt=f"{LIGHT_TOP:,} light")
+    box_text(sh, 330, 268, 75, [f"Overall {L:,.0f} x {W:,.0f} x {DECK + HB:,.0f}", "Bins 1,140 deep, 4 per side",
                                 f"Station tare ≈ {TARE['station'] / 1000:.1f} t"], title="Key figures", fs=9.5, lh=4.6)
     sh.save()
 
@@ -210,7 +210,7 @@ def sheet_skid(pdf, total):
     vp.label(L / 2, -W / 2 - 170, "SKID PLAN", "Bins removed")
     vp.dimh(0, L, W / 2 + 250, W / 2, W / 2)
     vp.dimh(0, X0, -W / 2 - 80, -W / 2, -W / 2, above=False)
-    vp.dimh(X0, XH, -W / 2 - 80, None, -W / 2, above=False, txt="5,850 bin zone (10 x 585)")
+    vp.dimh(X0, XH, -W / 2 - 80, None, -W / 2, above=False, txt=f"{XH - X0:,.0f} bin zone")
     vp.dimh(XH, L, -W / 2 - 80, None, L and -W / 2, above=False)
     vp.dimv(-W / 2, W / 2, -260, 0, 0)
     vp.dimv(-RUNNER_Y, RUNNER_Y, L + 250, L, L, left=False, txt="1,100 runner ctrs")
@@ -222,7 +222,7 @@ def sheet_skid(pdf, total):
     ve.dimv(0, SHS, -120, 0, 0, txt="89")
     ve.dimv(0, DECK + RAIL[1], -380, 0, 0, txt="199 rail top")
     ve.dimv(0, 1450, L + 200, L, L, left=False, txt="1,450 hook ctr")
-    ve.dimv(0, 1950, L + 420, L, L, left=False, txt="1,950")
+    ve.dimv(0, LIGHT_TOP, L + 420, L, L, left=False, txt=f"{LIGHT_TOP:,}")
     xs = [150 + i * (L - SHS - 150) / 9 for i in range(10)]
     ve.dimh(xs[0], xs[1], -60, 0, 0, above=False, txt=f"{xs[1] - xs[0]:.0f} x-member pitch")
     box_text(sh, 330, 268, 75, [
@@ -314,7 +314,7 @@ def sheet_rail(pdf, total):
 
     box_text(sh, 230, 160, 175, [
         "• The lip is now a 100 x 50 x 6 RHS kerb, not a folded",
-        "  plate. A closed tube welded along its full 5,850 can't",
+        f"  plate. A closed tube welded along its full {XH - X0:,.0f} can't",
         "  fold over when a bin or a fork knocks it.",
         "• 6 mm fillet weld both sides, full length, to the 10 mm",
         "  deck over SHS cross members. Rails butt into the rear",
@@ -331,8 +331,8 @@ def sheet_rail(pdf, total):
 
 def sheet_bin(pdf, n, num, total):
     w = width(n)
-    sc = 25 if n >= 5 else 20
-    sh = Sheet(pdf, num, f"Bin, {n} module{'s' if n > 1 else ''} ({w:,.0f} wide)", f"1:{sc}", total)
+    sc = 25
+    sh = Sheet(pdf, num, f"Bin, {w:,.0f} wide", f"1:{sc}", total)
     s = 1 / sc
     lab = -10 / s
     parts = cad.bin_parts(n)
@@ -348,16 +348,16 @@ def sheet_bin(pdf, n, num, total):
     vf.dimv(0, POCKET_Z, -60, 0, pcs[0] - 100, txt="200")
     vf.dimv(POCKET_Z, POCKET_Z + 100, -60, None, pcs[0] - 100, txt="100")
     vf.dimv(0, FB, -170, 0, 0)
-    vf.dimv(0, HF - T - 30, -280, None, 36, txt="1,766")
-    vf.dimv(0, HF, -390, None, 0, txt="1,800")
+    vf.dimv(0, FTOP_B, -280, None, 36, txt=f"{FTOP_B:,.0f} opening")
+    vf.dimv(0, HF, -390, None, 0, txt=f"{HF:,.0f}")
 
     rt, _ = project(comp, "right")
     vr = View(sh, rt, s, 40 + w * s + 40, 82)
     vr.label(D / 2, lab, "RIGHT SIDE", "Trap door, top-hinged")
     vr.dimh(0, D, -2.5 / s, 0, 0, above=False)
-    vr.dimv(0, HB, D + 60, D, D, left=False, txt="1,900")
-    vr.dimv(DOOR[2], DOOR[3], D + 160, D, D, left=False, txt="1,340 door")
-    vr.dimv(0, DOOR[2], D + 160, None, None, left=False, txt="360")
+    vr.dimv(0, HB, D + 60, D, D, left=False, txt=f"{HB:,.0f}")
+    vr.dimv(DOOR[2], DOOR[3], D + 160, D, D, left=False, txt=f"{DOOR[3] - DOOR[2]:,.0f} door")
+    vr.dimv(0, DOOR[2], D + 160, None, None, left=False, txt=f"{DOOR[2]:,.0f}")
     vr.dimh(DOOR[0], DOOR[1], DOOR[3] + 260, DOOR[3], DOOR[3], txt="1,030 door")
 
     cut = cq.Compound.makeCompound([sld for v in parts.values() for sld in v[0].solids().vals()])
@@ -368,21 +368,22 @@ def sheet_bin(pdf, n, num, total):
     vs = View(sh, sc, s, xs, 82)
     vs.label(D / 2, lab, "SECTION A-A", "Through the right fork pocket")
     vs.dimv(POCKET_Z, POCKET_Z + 100, -60, 0, 0, txt="100")
-    vs.dimv(0, FLOOR_Z + T, D + 60, D, D, left=False, txt="310 floor")
+    vs.dimv(0, FLOOR_Z + T, D + 60, D, D, left=False, txt=f"{FLOOR_Z + T} floor")
     vs.note(D / 2, POCKET_Z + 30, "fork pocket", ha="center", fs=8)
     vs.note(-20, FB + 280, "flap", ha="right", fs=8)
 
     tp, _ = project(comp, "top")
-    vt = View(sh, tp, s, 40, 82 + HB * s + 30 + DRIP[0] * s + 20)
-    vt.note(w + 6 / s, D / 2, "PLAN", ha="left", fs=10.5, weight="bold", va="center")
+    vt = View(sh, tp, s, 40, 82 + HB * s + 22 + DRIP[0] * s + 14)
+    vt.note(w + 12 / s, D / 2, "PLAN", ha="left", fs=10.5, weight="bold", va="center")
     vt.dimv(0, D, w + 60, w, w, left=False, txt=f"{D:,} deep")
-    vt.note(w + 6 / s, D / 2 - 4 / s, "lid falls 100 to the front", ha="left", fs=8.5, color=GREY, va="top")
+    vt.note(w + 12 / s, D / 2 - 4 / s, "lid falls 100 to the front", ha="left", fs=8.5, color=GREY, va="top")
 
     F, S = flats.bin_flats(n)
     tm = TARE[f"bin{n}"]
     box_text(sh, 255, 268, 150, [
-        f"Width {w:,.0f} = {n} x 585 - 20",
-        f"Depth {D:,} · height 1,800 front / 1,900 back",
+        f"Width {w:,.0f} x {D:,} deep",
+        *textwrap.wrap("Used for: " + ", ".join(used_by(n)), 52),
+        f"Height {HF:,.0f} front / {HB:,.0f} back, opening {FB:,.0f}-{FTOP_B:,.0f}",
         f"Pocket centres {pcs[1] - pcs[0]:,.0f} (55% of width, 300-1,000)",
         "Walls, floor, lid, flap, door 4 mm",
         "Pockets: 6 mm box, 200 x 100 internal",
@@ -430,7 +431,7 @@ def sheet_flats(pdf, F, num, title, total, extra_lines=()):
         X, Y = v.t(fx0, fy1)
         a.text(X, Y + 1.5, f"{f.code}  {f.name.split(' (')[0]}", fontsize=8, weight="bold", color=INK)
         a.text(X, Y + 5.2, f"{f.t} mm · qty {f.qty}" + (" · bends dashed" if f.bends else ""), fontsize=7.5, color=GREY)
-    box_text(sh, 20, 60, 220, list(extra_lines) + [
+    box_text(sh, 20, 60, 220, [ln for e in extra_lines for ln in textwrap.wrap(e, 118)] + [
         "Outside-dimension nets. Copper dashed lines are bend lines; apply your own bend deductions.",
         "DXF files for every part are in the pack (layers CUT, BEND, TEXT; units mm).",
     ], title="Notes", fs=9.5, lh=4.6)
@@ -443,7 +444,7 @@ def sheet_cutlist(pdf, num, total):
     rows = [("Item", "Qty / stn", "Steel each", "Steel / stn")]
     q = qty_per_station()
     for n in SIZES:
-        rows.append((f"Bin {n}M ({width(n):,.0f} wide)", q.get(n, 0), f"{TARE[f'bin{n}']:,.0f} kg", f"{TARE[f'bin{n}'] * q.get(n, 0):,.0f} kg"))
+        rows.append((f"Bin {width(n):,.0f} wide", q.get(n, 0), f"{TARE[f'bin{n}']:,.0f} kg", f"{TARE[f'bin{n}'] * q.get(n, 0):,.0f} kg"))
     rows.append(("Hook skid", 1, f"{TARE['skid']:,.0f} kg", f"{TARE['skid']:,.0f} kg"))
     rows.append(("Station, empty (steel)", "", "", f"{TARE['station']:,.0f} kg"))
     y = 268
@@ -480,8 +481,8 @@ def sheet_cutlist(pdf, num, total):
 
 SHEET_LIST = [("000", "Cover, notes and sheet list"), ("001", "Station general arrangement"), ("010", "Hook skid"),
               ("011", "Kerb rail and bin restraint details")]
-SHEET_LIST += [(f"{100 + n:03d}", f"Bin {n}M ({width(n):,.0f} wide)") for n in SIZES]
-SHEET_LIST += [(f"{110 + n:03d}", f"Bin {n}M flat patterns") for n in SIZES]
+SHEET_LIST += [(f"{100 + i:03d}", f"Bin {width(n):,.0f} wide") for i, n in enumerate(SIZES, 1)]
+SHEET_LIST += [(f"{110 + i:03d}", f"Bin {width(n):,.0f} flat patterns") for i, n in enumerate(SIZES, 1)]
 SHEET_LIST += [("200", "Skid flat patterns"), ("300", "Cut list and station summary")]
 SHEETS_INDEX = {num: i + 1 for i, (num, _t) in enumerate(SHEET_LIST)}
 TARE = {}
@@ -497,15 +498,15 @@ def build(path=f"{OUT}/BuildersBins-fabrication-drawings-RevB.pdf"):
     total = len(SHEET_LIST)
     with PdfPages(path) as pdf:
         sheet_cover(pdf, total); sheet_ga(pdf, total); sheet_skid(pdf, total); sheet_rail(pdf, total)
-        for n in SIZES:
-            sheet_bin(pdf, n, f"{100 + n:03d}", total)
-        for n in SIZES:
+        for i, n in enumerate(SIZES, 1):
+            sheet_bin(pdf, n, f"{100 + i:03d}", total)
+        for i, n in enumerate(SIZES, 1):
             F, _S = flats.bin_flats(n)
-            sheet_flats(pdf, F, f"{110 + n:03d}", f"Bin {n}M flat patterns", total,
-                        [f"Bin {n}M: width {width(n):,.0f}. Pocket mouths 200 x 100 with centres at {', '.join(f'{c - T:,.0f}' for c in pocket_centres(width(n)))} from the plate's left edge."])
+            sheet_flats(pdf, F, f"{110 + i:03d}", f"Bin {width(n):,.0f} flat patterns", total,
+                        [f"Bin {width(n):,.0f} ({', '.join(used_by(n))}): width {width(n):,.0f}. Pocket mouths 200 x 100 with centres at {', '.join(f'{c - T:,.0f}' for c in pocket_centres(width(n)))} from the plate's left edge."])
         F, _S = flats.skid_flats()
         sheet_flats(pdf, F, "200", "Skid flat patterns", total,
-                    ["Deck plate 6,300 x 2,450 is over standard plate size: join over a cross member, full-penetration butt weld."])
+                    [f"Deck plate {L:,.0f} x {W:,.0f} is over standard plate size: join over a cross member, full-penetration butt weld."])
         sheet_cutlist(pdf, "300", total)
     return path
 

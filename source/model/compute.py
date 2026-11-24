@@ -83,26 +83,45 @@ for lab, r in KG_PER_M2.items():
 # top-hinged trap door on the right-hand side to empty, 100 mm fall on the lid, 4 mm plate throughout.
 # All heights are from the ground with the bins on the skid. Lengths in metres.
 GEO = {
-    "L": 6.3, "W": 2.45, "deck": 0.10, "rail_h": 0.10, "rail_w": 0.05, "centre_w": 0.05,
+    "L": 6.0, "W": 2.45, "deck": 0.10, "rail_h": 0.10, "rail_w": 0.05, "centre_w": 0.05,
     "rear_zone": 0.15, "hook_zone": 0.30, "gap": 0.02, "plate": 0.004, "clear": 0.005,
-    "front_top": 1.90, "back_top": 2.00, "flap_bot": 1.20, "pocket_bot": 0.30, "pocket_h": 0.10, "floor": 0.40,
+    "front_top": 2.40, "back_top": 2.50, "flap_bot": 1.20, "flap_top": 2.00, "fill_top": 2.15, "pocket_bot": 0.30, "pocket_h": 0.10, "floor": 0.176,
 }
-MODULES_PER_SIDE = 10
+# Bin widths (24 Nov 2026): sized so every bin fills at about the same rate, with no bin narrower than 900 mm
+# (flap opening ~830) so offcuts, packaging and steel can actually be loaded. Widths are in 5 mm units.
 bin_zone = GEO["L"] - GEO["rear_zone"] - GEO["hook_zone"]
-mod_len = bin_zone / MODULES_PER_SIDE
+MODULES_PER_SIDE = round(bin_zone / 0.005)          # 1,170 units of 5 mm per side (each bin uses its width + the 20 mm gap)
+mod_len = 0.005
+MIN_W = 1.000
+HOME_M3 = 240 * 32.2 / 1000 * tot_v                 # loose m3 from a 240 m2 home (central case)
 depth = (GEO["W"] - 2 * GEO["rail_w"] - GEO["centre_w"]) / 2 - 2 * GEO["clear"]   # 5 mm clearance to each rail
 GEO.update({"module": mod_len, "depth": depth})
-SIDES = {"A": ["general", "plastic", "eps", "card"], "B": ["timber", "rubble", "steel", "plaster"]}
+SIDES = {"A": ["general", "steel", "eps", "card"], "B": ["timber", "rubble", "plastic", "plaster"]}
+def solve_side(ids):
+    tw = bin_zone - len(ids) * GEO["gap"]           # total bin width available on the side (5.770 m)
+    fixed = set()
+    while True:
+        free = [k for k in ids if k not in fixed]
+        rem = tw - len(fixed) * MIN_W - 2 * GEO["plate"] * len(free)
+        tot = sum(vshare[k] for k in free)
+        w = {k: MIN_W for k in fixed}
+        w.update({k: rem * vshare[k] / tot + 2 * GEO["plate"] for k in free})
+        low = [k for k in free if w[k] < MIN_W - 1e-9]
+        if not low: break
+        fixed |= set(low)
+    w = {k: round(v / mod_len) * mod_len for k, v in w.items()}
+    big = max(ids, key=lambda k: w[k]); w[big] += tw - sum(w.values())
+    return {k: round((v + GEO["gap"]) / mod_len) for k, v in w.items()}   # in 5 mm units incl. gap
 modules = {}
 for side, ids in SIDES.items():
-    tgt = {k: vshare[k] for k in ids}; tot = sum(tgt.values())
-    tgt = {k: v / tot * MODULES_PER_SIDE for k, v in tgt.items()}
-    alloc = {k: max(1, int(v)) for k, v in tgt.items()}
-    while sum(alloc.values()) < MODULES_PER_SIDE:
-        k = max(tgt, key=lambda k: tgt[k] - alloc[k]); alloc[k] += 1
-    while sum(alloc.values()) > MODULES_PER_SIDE:
-        k = min((k for k in alloc if alloc[k] > 1), key=lambda k: tgt[k] - alloc[k]); alloc[k] -= 1
-    modules.update(alloc)
+    modules.update(solve_side(ids))
+# 24 Nov 2026, Ryan: swap the timber and general sizes and make cardboard smaller.
+# Side A is then full at cardboard 1,000; side B's 460 mm spare goes to plasterboard and plastics (1,230 each).
+FIXED_W = {"general": 2.470, "steel": 1.000, "eps": 1.000, "card": 1.000,
+           "timber": 2.010, "rubble": 1.000, "plastic": 1.230, "plaster": 1.230}
+modules = {k: round((w + GEO["gap"]) / mod_len) for k, w in FIXED_W.items()}
+for side, ids in SIDES.items():
+    assert sum(modules[k] for k in ids) == MODULES_PER_SIDE, side
 t = GEO["plate"]
 int_d = depth - 2 * t
 int_h_front = GEO["front_top"] - t - (GEO["floor"] + t)
@@ -111,24 +130,36 @@ int_h = (int_h_front + int_h_back) / 2
 def bin_dims(n):
     w = n * mod_len - GEO["gap"]
     iw = w - 2 * t
-    net = iw * int_d * int_h
+    net = iw * int_d * int_h                       # full internal volume, floor to lid
     # 4 mm plate: front, back, two sides, floor, lid (sloped) + 25% for base frame, pockets, flap and door frames
     h_avg = (GEO["front_top"] + GEO["back_top"]) / 2 - GEO["floor"]
     lid = w * (depth ** 2 + (GEO["front_top"] - GEO["back_top"]) ** 2) ** 0.5
     area = 2 * w * h_avg + 2 * depth * h_avg + w * depth + lid
-    tare = area * t * 7850 * 1.25
+    tare = 307 + 237.4 * w            # steel only, fitted to the CAD model (1,000 wide 544 kg, 2,470 wide 893 kg)
     return w, net, tare
-print(f"\nRev B: module {mod_len*1000:.0f} mm, bin depth {depth*1000:.0f} mm, internal height {int_h_front*1000:.0f} front / {int_h_back*1000:.0f} back")
+TUNNEL_M3 = 0.13                                   # two fork tunnels inside each bin, floor to 306 above the base, sloped tops
+def usable(n):
+    # loaded by hand through a flap from 1.2 to 2.0 m: count the bin full at 2.15 m (opening top plus the heap behind it)
+    w = n * mod_len - GEO["gap"]
+    return (w - 2 * t) * int_d * (GEO["fill_top"] - GEO["floor"] - t) - TUNNEL_M3
+print(f"\nRev B: bin depth {depth*1000:.0f} mm, internal height {int_h_front*1000:.0f} front / {int_h_back*1000:.0f} back, min width {MIN_W*1000:.0f}")
+FILL = 1.0   # usable already stops at the 2.15 m fill line
+fills = {}
 for side, ids in SIDES.items():
     for k in ids:
         w, net, tare = bin_dims(modules[k])
-        print(f"{side} {k:<8} {modules[k]:>2} mod  {w*1000:>5.0f} mm wide  net {net:4.2f} m3  tare ~{tare:4.0f} kg")
+        fills[k] = vshare[k] * HOME_M3 / usable(modules[k])
+        print(f"{side} {k:<8} {w*1000:>5.0f} wide  net {net:4.2f} m3  usable {usable(modules[k]):4.2f}  per home {vshare[k]*HOME_M3:5.2f} m3  fills {fills[k]:4.2f}  full {usable(modules[k])*DENSITY[k]:5.0f} kg  tare ~{tare:4.0f} kg")
 station_net = sum(bin_dims(modules[k])[1] for k in modules)
-print(f"Station net {station_net:.1f} m3; 240 m2 home {240*32.2/1000*tot_v:.0f} m3 -> {240*32.2/1000*tot_v/(station_net*0.85):.1f} change-overs at 85% full")
+CHANGEOVERS = max(fills.values())
+station_use = sum(usable(modules[k]) for k in modules)
+print(f"Station net {station_net:.1f} m3, usable {station_use:.1f} m3; 240 m2 home {HOME_M3:.0f} m3 -> {CHANGEOVERS:.1f} change-overs (first bin full); "
+      f"{HOME_M3/station_use:.1f} if every bin filled together")
 
 cfg = {"geo": GEO, "open_flaps": {"timber": 90, "card": 90},
        "modular": {"modules_per_side": MODULES_PER_SIDE, "sides": SIDES},
-       "streams": [{"n": n, "id": k, "name": name, "short": short, "share": round(modules[k] / (2 * MODULES_PER_SIDE), 4), "kind": kind, "modules": modules[k]}
+       "streams": [{"n": n, "id": k, "name": name, "short": short, "share": round(modules[k] / (2 * MODULES_PER_SIDE), 4), "kind": kind, "modules": modules[k],
+                    "width": round(bin_dims(modules[k])[0], 3)}
                    for n, k, name, short, kind in STREAMS]}
 json.dump(cfg, open(os.path.join(HERE, "shares.json"), "w"), indent=1)
 v = dict(cfg); v["open_flaps"] = {}
@@ -138,10 +169,14 @@ os.makedirs(os.path.join(HERE, "..", "site", "data"), exist_ok=True)
 json.dump({
     "streams": [{"n": n, "id": k, "name": name, "weight": CENTRAL[k], "range": RANGE[k], "density": DENSITY[k],
                  "densityNote": DENS_NOTE.get(k, ""), "volume": round(vshare[k] * 100, 1),
-                 "built": round(modules[k] / (2 * MODULES_PER_SIDE) * 100, 1), "bayM3": round(bin_dims(modules[k])[1], 2),
+                 "built": round(modules[k] / (2 * MODULES_PER_SIDE) * 100, 1), "bayM3": round(usable(modules[k]), 2),
                  "modules": modules[k], "side": next(sd for sd, ids in SIDES.items() if k in ids),
                  "lengthMm": round(bin_dims(modules[k])[0] * 1000), "podNetM3": round(bin_dims(modules[k])[1], 2),
-                 "tareKg": round(bin_dims(modules[k])[2], -1)} for n, k, name, *_ in STREAMS],
+                 "tareKg": round(bin_dims(modules[k])[2], -1), "widthMm": round(bin_dims(modules[k])[0] * 1000),
+                 "usableM3": round(usable(modules[k]), 2), "homeM3": round(vshare[k] * HOME_M3, 2),
+                 "fillsPerHome": round(fills[k], 2), "fullKg": round(usable(modules[k]) * DENSITY[k], -1)}
+                for n, k, name, *_ in STREAMS],
+    "homeM3": round(HOME_M3, 1), "changeovers": round(CHANGEOVERS, 1), "minWidthMm": round(MIN_W * 1000), "fillTopMm": round(GEO["fill_top"] * 1000), "stationUsableM3": round(station_use, 1),
     "m3PerTonne": round(tot_v, 3), "moduleMm": round(mod_len * 1000), "modulesPerSide": MODULES_PER_SIDE,
     "geo": {k: round(v * 1000) for k, v in GEO.items()},
     "binDepthMm": round(depth * 1000), "internalHeightFrontMm": round(int_h_front * 1000), "internalHeightBackMm": round(int_h_back * 1000),

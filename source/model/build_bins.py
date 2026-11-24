@@ -159,6 +159,7 @@ DECK, RAIL_H, RAIL_W, CW = G["deck"], G["rail_h"], G["rail_w"], G["centre_w"]
 MODL, DEPTH, GAP = G["module"], G["depth"], G["gap"]
 FT, BT, FB = G["front_top"], G["back_top"], G["flap_bot"]
 PB, PH, FLOOR = G["pocket_bot"], G["pocket_h"], G["floor"]
+FTOP = G.get("flap_top", FT)                     # top of the loading opening (dump height)
 X0 = -L/2 + G["rear_zone"]                         # first module line (rear)
 XH = L/2 - G["hook_zone"]                          # last module line (hook end)
 random.seed(7)
@@ -227,9 +228,10 @@ cyl("SirenHorn", 0.065, 0.04, (fx + 0.19, 0.42, DECK + 1.15), M["ink"], rot=(0, 
 box("HookBrand", (0.006, 0.9, 0.2), (fx + 0.075, 0, DECK + 0.45), M["cupaint"])
 fit("HookBrandT", "BUILDERSBINS", (fx + 0.08, 0, DECK + 0.40), (math.pi/2, 0, math.pi/2), 0.8, 0.12, M["ink"], align='CENTER')
 # rear post: third sensor light and the security / no-hazardous sign
-box("RearPost", (0.06, 0.06, 1.85 - DECK), (-L/2 + 0.05, 0, DECK + (1.85 - DECK)/2), M["skid"])
-box("SensorLight2", (0.10, 0.24, 0.10), (-L/2 + 0.04, 0, 1.86), M["chassis"])
-box("SensorLens2", (0.006, 0.18, 0.06), (-L/2 - 0.012, 0, 1.86), M["lamp"])
+POST_H = BT - 0.05
+box("RearPost", (0.06, 0.06, POST_H - DECK), (-L/2 + 0.05, 0, DECK + (POST_H - DECK)/2), M["skid"])
+box("SensorLight2", (0.10, 0.24, 0.10), (-L/2 + 0.04, 0, POST_H + 0.01), M["chassis"])
+box("SensorLens2", (0.006, 0.18, 0.06), (-L/2 - 0.012, 0, POST_H + 0.01), M["lamp"])
 RR = (math.pi/2, 0, -math.pi/2)
 box("RearSign", (0.006, 0.62, 0.52), (-L/2 + 0.017, 0, 1.18), M["sign"])
 box("RearSignBar", (0.004, 0.62, 0.13), (-L/2 + 0.012, 0, 1.375), M["cupaint"])
@@ -362,19 +364,27 @@ for side, sgn in (("A", +1), ("B", -1)):
             for (dx, dz, sx, sz) in ((0, PH/2 + 0.003, PW_ + 0.012, 0.006), (0, -PH/2 - 0.003, PW_ + 0.012, 0.006),
                                      (-PW_/2 - 0.003, 0, 0.006, PH), (PW_/2 + 0.003, 0, 0.006, PH)):
                 parts.append(box("pt", (sx, DEPTH - 0.004, sz), (h + dx, ym, PB + PH/2 + dz), M["pocket"]))
+            if PB - 0.006 > FLOOR + T + 0.01:          # fork tunnel inside the bin: closed down to the floor, sloped top
+                parts.append(box("tb", (PW_ + 0.012, DEPTH - 0.008, PB - 0.006 - FLOOR - T), (h, ym, (FLOOR + T + PB - 0.006)/2), M["bin"]))
+                for k3 in (-1, 1):
+                    parts.append(box("tt", ((PW_ + 0.012)/2 * 1.12, DEPTH - 0.008, T), (h + k3 * (PW_ + 0.012)/4, ym, PB + PH + 0.006 + 0.028), M["bin"], rot=(0, -k3 * 0.5, 0)))
         parts.append(box("fl", (w, DEPTH, T), (cx, ym, FLOOR + T/2), M["bin"]))      # floor
         # front wall below the flap, back wall, two sides (sloped tops)
-        parts.append(box("fw", (w, T, FB - FLOOR), (cx, yf - sgn * T/2, FLOOR + (FB - FLOOR)/2), M["bin"]))
-        parts.append(box("bw", (w, T, BT - FLOOR), (cx, yb + sgn * T/2, FLOOR + (BT - FLOOR)/2), M["bin"]))
+        z_lo = max(FLOOR, PB + PH)
+        parts.append(box("fw", (w, T, FB - z_lo), (cx, yf - sgn * T/2, z_lo + (FB - z_lo)/2), M["bin"]))
+        parts.append(box("bw", (w, T, BT - z_lo), (cx, yb + sgn * T/2, z_lo + (BT - z_lo)/2), M["bin"]))
+        if FTOP < FT - 0.01:                          # fixed panel above the loading opening, with a drip over the flap
+            parts.append(box("up", (w, T, FT - FTOP), (cx, yf - sgn * T/2, FTOP + (FT - FTOP)/2), M["bin"]))
+            parts.append(box("upd", (w - 0.002, T, 0.035), (cx, yf + sgn * 0.016, FTOP - 0.012), M["bin"]))
         prof = [(yf, FLOOR), (yf, FT), (yb, BT), (yb, FLOOR)]
         parts.append(prism_x("sl", prof, x + T/2, T, M["bin"]))
         parts.append(prism_x("sr", prof, x + w - T/2, T, M["bin"]))
         # flap frame: two jambs and a lip under the lid
         for xj in (x + 0.02, x + w - 0.02):
-            parts.append(box("jb", (0.04, 0.03, FT - FB), (xj, yf - sgn * 0.015, FB + (FT - FB)/2), M["bin"]))
+            parts.append(box("jb", (0.04, 0.03, FTOP - FB), (xj, yf - sgn * 0.015, FB + (FTOP - FB)/2), M["bin"]))
         # smart lock on the lid lip (battery, talks to the controller by Bluetooth)
-        parts.append(box("lk", (0.12, 0.05, 0.05), (cx, yf + sgn * 0.02, FT - 0.04), M["chassis"]))
-        parts.append(box("lkl", (0.03, 0.004, 0.012), (cx, yf + sgn * 0.046, FT - 0.04), M["cupaint"]))
+        parts.append(box("lk", (0.12, 0.05, 0.05), (cx, yf + sgn * 0.02, FTOP + 0.05), M["chassis"]))
+        parts.append(box("lkl", (0.03, 0.004, 0.012), (cx, yf + sgn * 0.046, FTOP + 0.05), M["cupaint"]))
         binobj = join_as(parts, f"Bin_{sid}")
         # hard lid: highest at the ridge down the middle of the skid (2.0 m), sloping down and away to the front edge (1.9 m)
         ang = math.atan2(FT - BT, DEPTH); ll = math.hypot(DEPTH, FT - BT)
@@ -384,7 +394,7 @@ for side, sgn in (("A", +1), ("B", -1)):
         lp.append(box("bfold", (w - 0.002, T, 0.04), (cx, yb + sgn * 0.0, BT - 0.016), M["lid"]))                   # back fold into the centre gap
         lid = join_as(lp, f"Lid_{sid}")
         # drop-down front flap: bottom hinge at 1.2 m, closes under the lid's front edge
-        fh = FT - 0.032 - FB; fw = w - 0.07
+        fh = FTOP - 0.032 - FB; fw = w - 0.07
         f = box(f"Flap_{sid}", (fw, T, fh), (cx, yf + sgn * 0.006, FB + fh/2), M["flap"])
         set_origin(f, (cx, yf + sgn * 0.006, FB))
         rzf = 0 if sgn < 0 else math.pi; fy = yf + sgn * 0.0095
@@ -397,7 +407,7 @@ for side, sgn in (("A", +1), ("B", -1)):
         # trap door on the right-hand side (as you face the flap), hinged along its top edge
         xr = x if sgn > 0 else x + w            # right side: -x for side A, +x for side B
         out = -1 if sgn > 0 else 1
-        dz0, dz1 = FLOOR + 0.06, min(FT, BT) - 0.10
+        dz0, dz1 = FLOOR + 0.06, min(min(FT, BT) - 0.10, FTOP + 0.10)
         dy0, dy1 = ya_ + 0.06, yb_ - 0.06
         d = box(f"Door_{sid}", (T, dy1 - dy0, dz1 - dz0), (xr + out * (T + 0.002), (dy0 + dy1)/2, (dz0 + dz1)/2), M["door"])
         hg = cyl("dh", 0.014, dy1 - dy0 - 0.1, (xr + out * 0.012, (dy0 + dy1)/2, dz1), M["hinge"], rot=(math.pi/2, 0, 0), verts=12)
@@ -405,7 +415,7 @@ for side, sgn in (("A", +1), ("B", -1)):
         d = join_as([d, hg] + latches, f"Door_{sid}")
         set_origin(d, (xr + out * (T + 0.002), (dy0 + dy1)/2, dz1))
         # sign plate on the lower front
-        bin_sign(s, cx, w, yf, sgn, FLOOR + 0.03, FB - 0.035)
+        bin_sign(s, cx, w, yf, sgn, max(FLOOR, PB + PH) + 0.05, FB - 0.035)
         contents(s, x + T, x + w - T, ya_ + T, yb_ - T, FLOOR + T, BT - 0.05)
         bays.append({"id": sid, "side": side, "x0": round(x, 3), "len": round(w, 3), "modules": n})
 

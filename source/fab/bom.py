@@ -39,7 +39,7 @@ def build():
     for n in SIZES:
         F, S = flats.bin_flats(n)
         m = sum(f.mass() * f.qty for f in F) + sum(s.mass() * s.qty for s in S)
-        rows.append([f"Bin {n}M", width(n), q.get(n, 0), round(m, 1), round(m * q.get(n, 0), 1)])
+        rows.append([f"Bin {tag(n)}", width(n), q.get(n, 0), round(m, 1), round(m * q.get(n, 0), 1)])
         tot += m * q.get(n, 0)
     F, S = flats.skid_flats()
     sk = sum(f.mass() * f.qty for f in F) + sum(s.mass() * s.qty for s in S) + 60
@@ -58,7 +58,7 @@ def build():
         F, _S = flats.bin_flats(n)
         for f in F:
             w_, h_ = f.size()
-            prow.append([f.code, f"Bin {n}M", f.name, f.t, round(w_), round(h_), f.qty, q.get(n, 0), f.qty * q.get(n, 0),
+            prow.append([f.code, f"Bin {tag(n)}", f.name, f.t, round(w_), round(h_), f.qty, q.get(n, 0), f.qty * q.get(n, 0),
                          round(f.mass(), 1), round(f.mass() * f.qty * q.get(n, 0), 1), "Yes" if f.bends else "", f.note])
     F, _S = flats.skid_flats()
     for f in F:
@@ -73,7 +73,7 @@ def build():
     for n in SIZES:
         _F, S = flats.bin_flats(n)
         for s in S:
-            srow.append([s.code, f"Bin {n}M", s.name, s.sect, round(s.length), s.qty, q.get(n, 0), s.qty * q.get(n, 0),
+            srow.append([s.code, f"Bin {tag(n)}", s.name, s.sect, round(s.length), s.qty, q.get(n, 0), s.qty * q.get(n, 0),
                          round(s.kgm, 2), round(s.mass() * s.qty * q.get(n, 0), 1), s.note])
     _F, S = flats.skid_flats()
     for s in S:
@@ -86,7 +86,7 @@ def build():
     hrow = []
     for n in SIZES:
         for nm, qn, nt in flats.bin_hardware(n):
-            hrow.append([f"Bin {n}M", nm, qn, q.get(n, 0), qn * q.get(n, 0), nt])
+            hrow.append([f"Bin {tag(n)}", nm, qn, q.get(n, 0), qn * q.get(n, 0), nt])
     for nm, qn, nt in flats.skid_hardware():
         hrow.append(["Skid", nm, qn, 1, qn, nt])
     sheet(wb, "Hardware (by others)", ["Assembly", "Item", "Qty per item", "Items per station", "Qty per station", "Note"],

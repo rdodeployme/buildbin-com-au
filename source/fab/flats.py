@@ -58,43 +58,51 @@ def bin_flats(n):
     pw = w - 2 * T
     holes = [rect(cx - T - 100, POCKET_Z, cx - T + 100, POCKET_Z + 100) for cx in pcs]
     F = []
-    tag = f"BIN-{n}M"
-    F.append(Flat(f"{tag}-01", "Front plate", 4, 1, rect(0, 0, pw, FB), holes,
+    tag_ = f"BIN-{tag(n)}"
+    F.append(Flat(f"{tag_}-01", "Front plate", 4, 1, rect(0, 0, pw, FB), holes,
                   note="Pocket mouths 200 x 100. Copper frames weld over."))
-    F.append(Flat(f"{tag}-02", "Back plate", 4, 1, rect(0, 0, pw, ztD), holes,
+    F.append(Flat(f"{tag_}-02", "Back plate", 4, 1, rect(0, 0, pw, ztD), holes,
                   note="Top edge under the lid. Pocket mouths 200 x 100."))
     j = 35 - T
-    side = [(-j, FB), (0, FB), (0, 0), (D, 0), (D, ztD), (0, zt0), (-j, zt0)]
-    F.append(Flat(f"{tag}-03", "Side plate, left (outside face, front edge at left)", 4, 1, side,
-                  bends=[((0, FB), (0, zt0), "BEND 90° IN — flap jamb")]))
+    side = [(-j, FB), (0, FB), (0, 0), (D, 0), (D, ztD), (0, zt0), (0, FTOP_B), (-j, FTOP_B)]
+    F.append(Flat(f"{tag_}-03", "Side plate, left (outside face, front edge at left)", 4, 1, side,
+                  bends=[((0, FB), (0, FTOP_B), "BEND 90° IN — flap jamb")]))
     sideR = [(D - x, y) for x, y in side][::-1]
     y0, y1, z0, z1 = DOOR_OPEN
-    F.append(Flat(f"{tag}-04", "Side plate, right (outside face, front edge at right)", 4, 1, sideR,
+    F.append(Flat(f"{tag_}-04", "Side plate, right (outside face, front edge at right)", 4, 1, sideR,
                   holes=[rect(D - y1, z0, D - y0, z1)],
-                  bends=[((D, FB), (D, zt0), "BEND 90° IN — flap jamb")],
+                  bends=[((D, FB), (D, FTOP_B), "BEND 90° IN — flap jamb")],
                   note=f"Trap door opening {y1 - y0:.0f} x {z1 - z0:.0f}."))
-    F.append(Flat(f"{tag}-05", "Floor plate", 4, 1, rect(0, 0, pw, D - 2 * T), circles=[((pw - 60, 60), 20)],
+    F.append(Flat(f"{tag_}-05", "Floor plate", 4, 1, rect(0, 0, pw, D - 2 * T), circles=[((pw - 60, 60), 20)],
                   note="Drain hole 40 dia at the front right corner, plug by others."))
     ll, dr = lid_len(), DRIP[1]
-    F.append(Flat(f"{tag}-06", "Lid", 4, 1, rect(0, 0, w, ll + dr),
+    F.append(Flat(f"{tag_}-06", "Lid", 4, 1, rect(0, 0, w, ll + dr),
                   bends=[((0, dr), (w, dr), "BEND 85° DOWN — drip edge")],
                   note="Back edge (top of sheet) at the ridge. Falls 100 to the front. Copper ridge stripe painted."))
-    a, h, f = w - 72, (zt0 - 30) - FB, 25
+    a, h, f = w - 72, (FTOP_B - T) - FB, 25
     flap = [(-f, 0), (a + f, 0), (a + f, h), (a, h), (a, h + f), (0, h + f), (0, h), (-f, h)]
-    F.append(Flat(f"{tag}-07", "Front flap", 4, 1, flap,
+    F.append(Flat(f"{tag_}-07", "Front flap", 4, 1, flap,
                   bends=[((0, 0), (0, h), "BEND 90° IN"), ((a, 0), (a, h), "BEND 90° IN"), ((0, h), (a, h), "BEND 90° IN")],
                   note="Bottom edge hinged at 1,100 above the bin base."))
     dy0, dy1, dz0, dz1 = DOOR
-    F.append(Flat(f"{tag}-08", "Trap door leaf", 4, 1, rect(0, 0, dy1 - dy0, dz1 - dz0),
+    F.append(Flat(f"{tag_}-08", "Trap door leaf", 4, 1, rect(0, 0, dy1 - dy0, dz1 - dz0),
                   note="Top edge hinged. 20 lap all round the opening."))
     L6 = D - 2 * T
-    F.append(Flat(f"{tag}-09", "Fork pocket, top and bottom", 6, 4, rect(0, 0, 212, L6)))
-    F.append(Flat(f"{tag}-10", "Fork pocket, web", 6, 4, rect(0, 0, 100, L6), note="Box internal 200 x 100."))
-    F.append(Flat(f"{tag}-11", "Pocket mouth frame (copper)", 6, 4, rect(0, 0, 250, 150), holes=[rect(25, 25, 225, 125)],
+    F.append(Flat(f"{tag_}-09", "Fork tunnel, top", 6, 2, rect(0, 0, 212, L6)))
+    F.append(Flat(f"{tag_}-10", "Fork tunnel, web", 6, 4, rect(0, 0, TUN_TOP - POCKET_T - FLOOR_Z - T, L6),
+                  note="Floor to tunnel top. Fork opening 200 x 100 internal, underside 200 above the bin base."))
+    F.append(Flat(f"{tag_}-14", "Fork tunnel, fork plate", 6, 2, rect(0, 0, 200, L6), note="Between the webs, top face 200 above the bin base."))
+    F.append(Flat(f"{tag_}-15", "Fork tunnel, sloped cover", 4, 4, rect(0, 0, 118, L6), note="Two per tunnel, 50 rise to a ridge so loads slide off when tipped."))
+    F.append(Flat(f"{tag_}-16", "Upper front panel", 4, 1, rect(0, 0, pw, zt0 - FTOP_B),
+                  note="Fixed panel from the top of the loading opening (2.0 m on the skid) up to the lid."))
+    F.append(Flat(f"{tag_}-17", "Flap head drip", 4, 1, rect(0, 0, pw, 50), bends=[((0, 20), (pw, 20), "BEND 90° — drip over flap")],
+                  note="Welded under the upper panel, turns down outside the flap top."))
+    F.append(Flat(f"{tag_}-11", "Pocket mouth frame (copper)", 6, 4, rect(0, 0, 250, 150), holes=[rect(25, 25, 225, 125)],
                   note="Two per pocket, front and back face."))
     S = [
-        Section(f"{tag}-12", "Base runner", "RHS 75 x 50 x 4", L6, 2, kgm_rhs(75, 50, 4), "On edge, inside each side wall."),
-        Section(f"{tag}-13", "Door stiffener", "RHS 50 x 25 x 3", (z1 - z0) - 80, 2, kgm_rhs(50, 25, 3), "Inside face of door, within the opening."),
+        Section(f"{tag_}-12", "Base runner", "RHS 75 x 50 x 4", L6, 2, kgm_rhs(75, 50, 4), "On edge, inside each side wall."),
+        Section(f"{tag_}-18", "Floor bearer", "RHS 75 x 50 x 4", w - 2 * T - 100, 2, kgm_rhs(75, 50, 4), "Across, at the third points under the floor."),
+        Section(f"{tag_}-13", "Door stiffener", "RHS 50 x 25 x 3", (z1 - z0) - 80, 2, kgm_rhs(50, 25, 3), "Inside face of door, within the opening."),
     ]
     return F, S
 
@@ -107,17 +115,17 @@ def bin_hardware(n):
         ("Trap door hinge, continuous, 1,030 long", 1, "Top edge of door, low profile"),
         ("Over-centre latch with safety pin, low profile", 2, "Bottom edge of door, inside the 10 mm buffer zone"),
         ("Bluetooth smart latch (flap)", 1, "By others, to confirm"),
-        ("Rubber buffer strip 10 x 40 x 1,300", 4, "Bonded and bolted, 2 per side wall"),
+        ("Rubber buffer strip 10 x 40 x 1,600", 4, "Bonded and bolted, 2 per side wall"),
         ("Drain plug 40", 1, "Floor"),
-        (f"Sign plate, ACM, {w - 80:.0f} x 840", 1, "Lower front"),
+        (f"Sign plate, ACM, {w - 80:.0f} x 715", 1, "Lower front, above the fork pockets"),
     ]
 
 
 def skid_flats():
     hy = W / 2
     holes = []
-    for k in range(NMOD):
-        xc = X0 + (k + 0.5) * MOD
+    for k in range(NDRAIN):
+        xc = X0 + (k + 0.5) * DRAIN_PITCH
         for yc in (hy - RAIL[0] - 40, -hy + RAIL[0] + 40, RAIL[0] / 2 + 40, -RAIL[0] / 2 - 40):
             holes.append(((xc, yc + hy), 15))
     F = [
@@ -131,7 +139,7 @@ def skid_flats():
     ]
     span_out = hy - (RUNNER_Y + SHS / 2)
     span_mid = 2 * RUNNER_Y - SHS
-    px = 6160.5
+    px = PX
     brace = math.hypot(px - (XH + 50), 1100 - (DECK + 100))
     S = [
         Section("SKID-05", "Runner", "SHS 89 x 89 x 6", L - 150, 2, kgm_rhs(89, 89, 6), "Centres ±550, to suit hook system"),
@@ -144,8 +152,8 @@ def skid_flats():
         Section("SKID-11", "Hook cross beam", "SHS 89 x 89 x 5", 900 + SHS, 1, kgm_rhs(89, 89, 5), "Top of posts"),
         Section("SKID-12", "Hook brace", "SHS 89 x 89 x 5", brace, 2, kgm_rhs(89, 89, 5), "Cut ends to suit"),
         Section("SKID-13", "Hook bar", "Round bar 50 dia", 700, 1, math.pi * 25 ** 2 * STEEL * 1000, "Centre 1,450 above ground, to suit fleet"),
-        Section("SKID-14", "Light mast", "SHS 50 x 50 x 3", 1950 - 1589, 1, kgm_rhs(50, 50, 3), "Top 1,950"),
-        Section("SKID-15", "Rear light post", "SHS 50 x 50 x 3", 1950 - DECK, 1, kgm_rhs(50, 50, 3), "Top 1,950"),
+        Section("SKID-14", "Light mast", "SHS 50 x 50 x 3", LIGHT_TOP - 1589, 1, kgm_rhs(50, 50, 3), f"Top {LIGHT_TOP:,}"),
+        Section("SKID-15", "Rear light post", "SHS 50 x 50 x 3", LIGHT_TOP - DECK, 1, kgm_rhs(50, 50, 3), f"Top {LIGHT_TOP:,}"),
     ]
     return F, S
 
@@ -187,7 +195,7 @@ def write_dxf(f, path):
 
 def write_all(out="/home/claude/big/fab/out/DXF"):
     files = []
-    groups = [(f"BIN-{n}M", bin_flats(n)[0]) for n in SIZES] + [("SKID", skid_flats()[0])]
+    groups = [(f"BIN-{tag(n)}", bin_flats(n)[0]) for n in SIZES] + [("SKID", skid_flats()[0])]
     for g, flats in groups:
         os.makedirs(f"{out}/{g}", exist_ok=True)
         for f in flats:

@@ -3,58 +3,58 @@
   {
    "id": "general",
    "side": "A",
-   "x0": -2.99,
-   "len": 2.32,
-   "modules": 4
+   "x0": -2.84,
+   "len": 2.47,
+   "modules": 498
   },
   {
-   "id": "plastic",
+   "id": "steel",
    "side": "A",
-   "x0": -0.65,
-   "len": 1.15,
-   "modules": 2
+   "x0": -0.35,
+   "len": 1.0,
+   "modules": 204
   },
   {
    "id": "eps",
    "side": "A",
-   "x0": 0.52,
-   "len": 0.565,
-   "modules": 1
+   "x0": 0.67,
+   "len": 1.0,
+   "modules": 204
   },
   {
    "id": "card",
    "side": "A",
-   "x0": 1.105,
-   "len": 1.735,
-   "modules": 3
+   "x0": 1.69,
+   "len": 1.0,
+   "modules": 204
   },
   {
    "id": "timber",
    "side": "B",
-   "x0": -2.99,
-   "len": 3.49,
-   "modules": 6
+   "x0": -2.84,
+   "len": 2.01,
+   "modules": 406
   },
   {
    "id": "rubble",
    "side": "B",
-   "x0": 0.52,
-   "len": 0.565,
-   "modules": 1
+   "x0": -0.81,
+   "len": 1.0,
+   "modules": 204
   },
   {
-   "id": "steel",
+   "id": "plastic",
    "side": "B",
-   "x0": 1.105,
-   "len": 0.565,
-   "modules": 1
+   "x0": 0.21,
+   "len": 1.23,
+   "modules": 250
   },
   {
    "id": "plaster",
    "side": "B",
-   "x0": 1.69,
-   "len": 1.15,
-   "modules": 2
+   "x0": 1.46,
+   "len": 1.23,
+   "modules": 250
   }
  ]
 }

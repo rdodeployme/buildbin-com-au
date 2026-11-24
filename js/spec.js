@@ -1,14 +1,16 @@
 // BuildersBins fabricator spec, Rev B: hook skid + 8 stand-alone bins -> drawings, schedule, BOM
-const L = 6300, W = 2450, DECK = 100, RAIL_H = 100, RAIL_W = 50, CW = 50, REAR = 150, HOOKZ = 300;
-const MOD = 585, NMOD = 10, PER_SIDE = 4, GAP = 20, T = 4, DEPTH = 1140, MAXM = 6, CL = 5;
-const FT = 1900, BT = 2000, FB = 1200, PB = 300, PH = 100, FLOOR = 400;   // heights from the ground, bins on the skid
+const L = 6000, W = 2450, DECK = 100, RAIL_H = 100, RAIL_W = 50, CW = 50, REAR = 150, HOOKZ = 300;
+const MOD = 5, NMOD = 1110, PER_SIDE = 4, GAP = 20, T = 4, DEPTH = 1140, CL = 5;   // widths in 5 mm units; each bin uses its width + 20 mm gap
+const STEP = 10, MINU = 204, MAXU = 704;                                         // 50 mm steps, 1,000 to 3,500 wide
+const FT = 2400, BT = 2500, FB = 1200, PB = 300, PH = 100, FLOOR = 176;   // floor top 180: fork pockets are tunnels inside the bin
+const FTOP = 2000, FILLTOP = 2150, TUN = 0.13;   // loading opening tops out at the 2.0 m dump height; count a bin full at 2.15 m   // heights from the ground, bins on the skid
 const X0 = REAR, HOOK_Z = 1450;
 const IH_F = FT - T - (FLOOR + T), IH_B = BT - T - (FLOOR + T), IH = (IH_F + IH_B) / 2, ID = DEPTH - 2 * T;
-const DOOR = { z0: FLOOR + 60, z1: Math.min(FT, BT) - 100, w: DEPTH - 120 };
+const DOOR = { z0: FLOOR + 60, z1: FTOP + 100, w: DEPTH - 120 };
 const PRESETS = {
-  default: { A: [['general', 4], ['plastic', 2], ['eps', 1], ['card', 3]], B: [['timber', 6], ['rubble', 1], ['steel', 1], ['plaster', 2]] },
-  brick:   { A: [['general', 4], ['plastic', 2], ['eps', 1], ['card', 3]], B: [['timber', 5], ['rubble', 2], ['steel', 1], ['plaster', 2]] },
-  plaster: { A: [['general', 4], ['plastic', 2], ['eps', 1], ['card', 3]], B: [['timber', 5], ['rubble', 1], ['steel', 1], ['plaster', 3]] },
+  default: { A: [['general', 498], ['steel', 204], ['eps', 204], ['card', 204]], B: [['timber', 406], ['rubble', 204], ['plastic', 250], ['plaster', 250]] },
+  brick:   { A: [['general', 498], ['steel', 204], ['eps', 204], ['card', 204]], B: [['timber', 406], ['rubble', 254], ['plastic', 225], ['plaster', 225]] },
+  plaster: { A: [['general', 498], ['steel', 204], ['eps', 204], ['card', 204]], B: [['timber', 406], ['rubble', 204], ['plastic', 204], ['plaster', 296]] },
 };
 const $ = (s) => document.querySelector(s);
 const fmt = (n) => Math.round(n).toLocaleString('en-AU');
@@ -20,9 +22,10 @@ function bin(n) {
   const net = iw * ID * IH / 1e9;
   const hAvg = (FT + BT) / 2 - FLOOR, lid = w * Math.hypot(DEPTH, FT - BT);
   const area = (2 * w * hAvg + 2 * DEPTH * hAvg + w * DEPTH + lid) / 1e6;
-  const tare = area * (T / 1000) * 7850 * 1.25;
+  const tare = 307 + 0.2374 * w;   // steel only, fitted to the CAD model (1,000 wide 544 kg, 2,470 wide 893 kg)
   const pc = Math.max(300, Math.min(1000, w * 0.55));
-  return { w, iw, net, tare, pc, flapW: w - 70, flapH: FT - 12 - FB };
+  const use = iw * ID * (FILLTOP - FLOOR - T) / 1e9 - TUN;
+  return { w, iw, net, use, tare, pc, flapW: w - 70, flapH: FTOP - 12 - FB };
 }
 
 // ---------- state <-> URL ----------
@@ -31,7 +34,7 @@ function readHash() {
   const q = new URLSearchParams(location.hash.slice(1));
   const st = { swl: [1000, 1500, 2000].includes(+q.get('swl')) ? +q.get('swl') : 1500, sides: clone(PRESETS.default) };
   if (q.get('A') && q.get('B')) {
-    const parse = (v) => v.split(',').map((t) => t.split('.')).map(([id, n]) => [id, Math.max(1, Math.min(MAXM, +n || 1))]);
+    const parse = (v) => v.split(',').map((t) => t.split('.')).map(([id, n]) => [id, Math.max(MINU, Math.min(MAXU, +n || MINU))]);
     const sides = { A: parse(q.get('A')), B: parse(q.get('B')) };
     const ids = [...sides.A, ...sides.B].map((x) => x[0]).sort().join();
     const ok = ids === Object.keys(S).sort().join() && ['A', 'B'].every((k) => sides[k].length === PER_SIDE && sides[k].reduce((a, x) => a + x[1], 0) <= NMOD);
@@ -51,22 +54,22 @@ function renderCfg() {
   for (const side of ['A', 'B']) {
     const free = NMOD - used(side), other = side === 'A' ? 'B' : 'A';
     const col = document.createElement('div'); col.className = 'cfg-side';
-    col.innerHTML = `<h3>Side ${side} <span class="${free ? 'warn' : 'ok'}">${used(side)} of 10 modules${free ? ` · ${free} free` : ''}</span></h3>`;
+    col.innerHTML = `<h3>Side ${side} <span class="${free ? 'warn' : 'ok'}">${free ? `${fmt(free * MOD)} mm free` : `${fmt(NMOD * MOD)} used`}</span></h3>`;
     const strip = document.createElement('div'); strip.className = 'strip'; strip.setAttribute('aria-hidden', 'true');
-    strip.innerHTML = state.sides[side].map(([id, n]) => `<i style="flex:${n};--n:${n}"><b>${String(S[id].n).padStart(2, '0')}</b></i>`).join('') + (free ? `<i class="free" style="flex:${free}"></i>` : '');
+    strip.innerHTML = state.sides[side].map(([id, n]) => `<i style="flex:${n}"><b>${String(S[id].n).padStart(2, '0')}</b></i>`).join('') + (free ? `<i class="free" style="flex:${free}"></i>` : '');
     col.appendChild(strip);
     state.sides[side].forEach(([id, n], i) => {
       const s = S[id], b = bin(n), opp = state.sides[other][i];
       const swapOk = used(side) - n + opp[1] <= NMOD && used(other) - opp[1] + n <= NMOD;
       const row = document.createElement('div'); row.className = 'pod-row';
-      row.innerHTML = `<span class="num">${String(s.n).padStart(2, '0')}</span><span class="nm">${s.name}<small>${n} module${n > 1 ? 's' : ''} · ${fmt(b.w)} wide · ${m3(b.net)} m³</small></span>
+      row.innerHTML = `<span class="num">${String(s.n).padStart(2, '0')}</span><span class="nm">${s.name}<small>${fmt(b.w)} wide · ${m3(b.use)} m³ usable · fills ${(S[id].home / b.use).toFixed(1)}× per home</small></span>
         <span class="ctl">
           <button type="button" data-a="left" ${i === 0 ? 'disabled' : ''} aria-label="Move ${s.name} toward the rear">◀</button>
           <button type="button" data-a="right" ${i === PER_SIDE - 1 ? 'disabled' : ''} aria-label="Move ${s.name} toward the hook end">▶</button>
           <button type="button" data-a="swap" ${swapOk ? '' : 'disabled'} aria-label="Swap ${s.name} with ${S[opp[0]].name} on side ${other}">⇄</button>
-          <button type="button" data-a="minus" ${n <= 1 ? 'disabled' : ''} aria-label="Shrink ${s.name} by one module">−</button>
-          <b>${n}</b>
-          <button type="button" data-a="plus" ${n >= MAXM || free < 1 ? 'disabled' : ''} aria-label="Grow ${s.name} by one module">+</button>
+          <button type="button" data-a="minus" ${n - STEP < MINU ? 'disabled' : ''} aria-label="Shrink ${s.name} by 50 mm">−</button>
+          <b>${fmt(b.w)}</b>
+          <button type="button" data-a="plus" ${n + STEP > MAXU || free < STEP ? 'disabled' : ''} aria-label="Grow ${s.name} by 50 mm">+</button>
         </span>`;
       row.querySelectorAll('button').forEach((bt) => bt.addEventListener('click', () => act(side, i, bt.dataset.a)));
       col.appendChild(row);
@@ -76,8 +79,8 @@ function renderCfg() {
 }
 function act(side, i, a) {
   const arr = state.sides[side], other = side === 'A' ? 'B' : 'A';
-  if (a === 'minus') arr[i][1]--;
-  if (a === 'plus') arr[i][1]++;
+  if (a === 'minus') arr[i][1] -= STEP;
+  if (a === 'plus') arr[i][1] += STEP;
   if (a === 'left') [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]];
   if (a === 'right') [arr[i + 1], arr[i]] = [arr[i], arr[i + 1]];
   if (a === 'swap') [arr[i], state.sides[other][i]] = [state.sides[other][i], arr[i]];
@@ -150,15 +153,15 @@ function drawPlan() {
       for (const k of [-1, 1]) rect(svg, p.x + p.w / 2 + k * p.pc / 2 - 100, y0 + 30, 200, DEPTH - 60, 'pockethid');
       const cx = p.x + p.w / 2, cy = (y0 + y1) / 2;
       txt(svg, cx, cy + 40, nn(p.id), 'bayno');
-      txt(svg, cx, cy + 190, p.n > 1 ? S[p.id].name : S[p.id].short, 'bayname');
-      txt(svg, cx, cy + 320, `${p.n} × 585`, 'baysub');
+      txt(svg, cx, cy + 190, p.w >= 800 ? S[p.id].name : S[p.id].short, 'bayname');
+      txt(svg, cx, cy + 320, `${fmt(p.w)} wide`, 'baysub');
     }
     const yy = side === 'A' ? -170 : W + 170;
     for (const p of placed(side)) dimH(svg, p.x, p.x + p.w, yy, fmt(p.w), side === 'A' ? 0 : W, true);
     txt(svg, -90, (y0 + y1) / 2 + 40, side, 'sidelbl');
   }
-  dimH(svg, 0, L, -480, '6,300 overall', 0);
-  dimH(svg, X0, X0 + NMOD * MOD, W + 470, '5,850 bin zone = 10 × 585 modules', W);
+  dimH(svg, 0, L, -480, `${fmt(L)} overall`, 0);
+  dimH(svg, X0, X0 + NMOD * MOD, W + 470, `${fmt(NMOD * MOD)} bin zone`, W);
   dimH(svg, 0, X0, W + 470, '150', W, true);
   dimH(svg, L - HOOKZ, L, W + 470, '300 hook', W, true);
   dimV(svg, 0, W, L + 380, '2,450', L);
@@ -193,26 +196,27 @@ function drawSide(side) {
     rect(svg, a, Y(FT), w, FT - DECK, 'body');                                 // bin outline (front face)
     for (const k of [-1, 1]) { const [pa, pw] = R(p.x + p.w / 2 + k * p.pc / 2 - 100, p.x + p.w / 2 + k * p.pc / 2 + 100); rect(svg, pa, Y(PB + PH), pw, PH, 'pocket'); }
     const [sa, sw] = R(p.x + 40, p.x + p.w - 40);
-    rect(svg, sa, Y(FB - 35), sw, FB - 35 - FLOOR - 30, 'sign');
+    rect(svg, sa, Y(FB - 35), sw, FB - 35 - (PB + PH + 50), 'sign');
     rect(svg, sa, Y(FB - 35), sw, 210, 'band');
     txt(svg, sa + 50, Y(FB - 210), nn(p.id), 'signno', 'start');
-    txt(svg, sa + 50, Y(FB - 360), p.n > 1 ? S[p.id].name.toUpperCase() : S[p.id].short.toUpperCase(), p.n > 1 ? 'signname' : 'signname sm', 'start');
+    txt(svg, sa + 50, Y(FB - 360), p.w >= 800 ? S[p.id].name.toUpperCase() : S[p.id].short.toUpperCase(), p.w >= 800 ? 'signname' : 'signname sm', 'start');
     for (let r = 0; r < 3; r++) rect(svg, sa + 50, Y(FB - 480 - r * 100), Math.min(sw * 0.38, 500), 26, 'listbar');
-    if (p.n > 1) for (let r = 0; r < 2; r++) rect(svg, sa + sw / 2 + 30, Y(FB - 480 - r * 100), Math.min(sw * 0.3, 400), 26, 'listbar no');
+    if (p.w >= 800) for (let r = 0; r < 2; r++) rect(svg, sa + sw / 2 + 30, Y(FB - 480 - r * 100), Math.min(sw * 0.3, 400), 26, 'listbar no');
     const [fa, fw] = R(p.x + 35, p.x + p.w - 35);
-    rect(svg, fa, Y(FT - 12), fw, p.flapH, 'flapleaf');
+    rect(svg, fa, Y(FTOP - 12), fw, p.flapH, 'flapleaf');
     txt(svg, X(p.x + p.w / 2), Y(FB + 330), nn(p.id), 'flapno');
-    el(svg, 'circle', { cx: X(p.x + p.w / 2), cy: Y(FT - 40), r: 22, class: 'lockdot' });
+    el(svg, 'circle', { cx: X(p.x + p.w / 2), cy: Y(FTOP + 50), r: 22, class: 'lockdot' });
   }
   // dims
   for (const p of placed(side)) { const [da, dw] = R(p.x, p.x + p.w); dimH(svg, da, da + dw, 200, fmt(p.w), 0, true); }
-  dimH(svg, 0, L, 430, '6,300', 0);
+  dimH(svg, 0, L, 430, fmt(L), 0);
   const sg = side === 'A' ? -1 : 1, ext = side === 'A' ? 0 : L, rx = (d) => (side === 'A' ? 0 : L) + sg * d;
   dimV(svg, Y(PB), 0, rx(300), '300', ext, true);
   dimV(svg, Y(FB), Y(PB), rx(300), '900', ext, true);
-  dimV(svg, Y(FT), Y(FB), rx(300), `${fmt(FT - FB)} flap`, ext, true);
+  dimV(svg, Y(FTOP), Y(FB), rx(300), `${fmt(FTOP - FB)} opening`, ext, true);
   dimV(svg, Y(FB), 0, rx(560), '1,200', ext, true);
-  dimV(svg, Y(BT), 0, rx(800), '2,000 max at ridge', ext);
+  dimV(svg, Y(FTOP), 0, rx(800), `${fmt(FTOP)} dump height`, ext, true);
+  dimV(svg, Y(BT), 0, rx(1060), `${fmt(BT)} max at ridge`, ext);
 }
 
 // ---------- GA-04 section across the skid ----------
@@ -230,8 +234,8 @@ function drawSection() {
     rect(svg, ya, Y(FLOOR + T), DEPTH, T + 6, 'chassis');
     poly(svg, [[yf, Y(FT)], [yb, Y(BT)], [yb + (yb > yf ? 30 : -30), Y(BT - 3)], [yb, Y(BT - 14)], [yf, Y(FT - 14)]], 'lidline');
     // flap closed, and dashed at 90 degrees as a ledge
-    rect(svg, yf + (dir < 0 ? -12 : 2), Y(FT - 12), 10, FT - 12 - FB, 'flapleaf');
-    line(svg, yf, Y(FB), yf + dir * (FT - 12 - FB), Y(FB), 'ledge');
+    rect(svg, yf + (dir < 0 ? -12 : 2), Y(FTOP - 12), 10, FTOP - 12 - FB, 'flapleaf');
+    line(svg, yf, Y(FB), yf + dir * (FTOP - 12 - FB), Y(FB), 'ledge');
     // trap door seen face-on in this section (shown dashed)
     rect(svg, ya + 60, Y(DOOR.z1), DEPTH - 120, DOOR.z1 - DOOR.z0, 'doorface');
     txt(svg, (ya + yz) / 2, Y((DOOR.z0 + DOOR.z1) / 2), 'TRAP DOOR', 'tiny');
@@ -240,10 +244,10 @@ function drawSection() {
   dimH(svg, 0, W, 300, '2,450', 0);
   dimH(svg, RAIL_W + CL, RAIL_W + CL + DEPTH, 140, '1,140', 0, true);
   dimH(svg, W - RAIL_W - CL - DEPTH, W - RAIL_W - CL, 140, '1,140', 0, true);
-  dimV(svg, Y(FLOOR), 0, -200, '400 floor', 0, true);
+  dimV(svg, Y(FLOOR + T), 0, -200, `${fmt(FLOOR + T)} floor`, 0, true);
   dimV(svg, Y(FB), 0, -460, '1,200', 0, true);
   dimV(svg, Y(FT), 0, -720, fmt(FT) + ' front', 0);
-  dimV(svg, Y(BT), 0, W / 2 + 300, '2,000 ridge', W / 2, true);
+  dimV(svg, Y(BT), 0, W / 2 + 300, `${fmt(BT)} ridge`, W / 2, true);
   dimV(svg, Y(DECK + RAIL_H), Y(DECK), W + 200, '100 rail', W, true);
   dimV(svg, Y(PB), Y(DECK), W + 460, '200 to pocket', W, true);
   txt(svg, -60, Y(FB + 180), 'LEDGE', 'tiny', 'end');
@@ -259,16 +263,16 @@ function drawPod() {
   // front
   rect(svg, 0, Y(zb(FT)), p.w, zb(FT), 'body');
   for (const k of [-1, 1]) rect(svg, p.w / 2 + k * p.pc / 2 - 100, Y(zb(PB + PH)), 200, PH, 'pocket');
-  rect(svg, 35, Y(zb(FT - 12)), p.w - 70, p.flapH, 'flapleaf');
-  rect(svg, 40, Y(zb(FB - 35)), p.w - 80, FB - 35 - FLOOR - 30, 'sign');
+  rect(svg, 35, Y(zb(FTOP - 12)), p.w - 70, p.flapH, 'flapleaf');
+  rect(svg, 40, Y(zb(FB - 35)), p.w - 80, FB - 35 - (PB + PH + 50), 'sign');
   rect(svg, 40, Y(zb(FB - 35)), p.w - 80, 210, 'band');
-  el(svg, 'circle', { cx: p.w / 2, cy: Y(zb(FT - 40)), r: 22, class: 'lockdot' });
+  el(svg, 'circle', { cx: p.w / 2, cy: Y(zb(FTOP + 50)), r: 22, class: 'lockdot' });
   dimH(svg, 0, p.w, 250, fmt(p.w), 0);
   dimH(svg, 35, p.w - 35, -(zb(FT) + 140), `${fmt(p.w - 70)} flap`, -zb(FT), true);
   dimV(svg, Y(zb(PB)), 0, -230, '200', 0, true);
   dimV(svg, Y(zb(FB)), 0, -460, fmt(zb(FB)), 0, true);
   dimV(svg, Y(zb(FT)), 0, -680, fmt(zb(FT)), 0);
-  txt(svg, p.w / 2, Y(zb(FT) + 300), `FRONT · ${p.n}-MODULE BIN`, 'note');
+  txt(svg, p.w / 2, Y(zb(FT) + 300), `FRONT · ${fmt(p.w)} WIDE BIN`, 'note');
   // right-hand side: trap door, hinged along its top edge
   const ox = p.w + 900;
   poly(svg, [[ox, Y(0)], [ox, Y(zb(FT))], [ox + DEPTH, Y(zb(BT))], [ox + DEPTH, Y(0)]], 'body');
@@ -282,34 +286,36 @@ function drawPod() {
   dimV(svg, Y(zb(BT)), 0, ox + DEPTH + 480, fmt(zb(BT)), ox + DEPTH);
   txt(svg, ox + DEPTH / 2, Y(zb(FT) + 300), 'RIGHT SIDE · TRAP DOOR', 'note');
   txt(svg, ox + DEPTH / 2, Y(zb(DOOR.z1) - 70), 'HINGE', 'tiny');
-  $('#podCap').textContent = `${p.n}-module bin shown, heights from the bin base. Flap on the front, trap door on the right.`;
+  $('#podCap').textContent = `Widest bin (${fmt(p.w)}) shown, heights from the bin base. Flap on the front, trap door on the right.`;
 }
 
 // ---------- schedule, totals, BOM, dims ----------
 function schedule() {
-  const rows = []; let net = 0, load = 0, tare = 0, mods = 0;
+  const rows = []; let net = 0, load = 0, tare = 0, mods = 0;   // mods = most fills per home (sets the change-overs)
   const sizes = {};
   for (const side of ['A', 'B']) for (const p of placed(side)) {
-    const s = S[p.id], full = p.net * s.density, over = full > state.swl;
+    const s = S[p.id], full = p.use * s.density, over = full > state.swl;
     const fill = over ? Math.floor(state.swl / (s.density * (p.iw * ID / 1e6)) / 10) * 10 : null;
-    net += p.net; load += over ? state.swl : full; tare += p.tare; mods += p.n; sizes[`${p.n}-module (${fmt(p.w)})`] = (sizes[`${p.n}-module (${fmt(p.w)})`] || 0) + 1;
-    rows.push(`<tr${over ? ' class="over"' : ''}><td class="n">${nn(p.id)}</td><td>${s.name}</td><td>${side}</td><td>${p.n}</td><td>${fmt(p.w)} × 1,140 × ${fmt(FT - DECK)}/${fmt(BT - DECK)}</td><td>${fmt(p.iw)} × ${fmt(ID)} × ${fmt(IH_F)}/${fmt(IH_B)}</td><td>${m3(p.net)}</td><td>${fmt(p.flapW)} × ${fmt(p.flapH)}</td><td>${fmt(DOOR.w)} × ${fmt(DOOR.z1 - DOOR.z0)}</td><td>${fmt(Math.round(p.tare / 10) * 10)}</td><td>${fmt(s.density)}</td><td>${fmt(full)}</td><td>${fill ? `${fmt(fill)} above floor` : 'To top'}</td></tr>`);
+    const fills = s.home / p.use;
+    net += p.use; load += over ? state.swl : full; tare += p.tare; mods = Math.max(mods, fills); sizes[`${fmt(p.w)} wide`] = (sizes[`${fmt(p.w)} wide`] || 0) + 1;
+    rows.push(`<tr${over ? ' class="over"' : ''}><td class="n">${nn(p.id)}</td><td>${s.name}</td><td>${side}</td><td>${fills.toFixed(1)}</td><td>${fmt(p.w)} × 1,140 × ${fmt(FT - DECK)}/${fmt(BT - DECK)}</td><td>${fmt(p.iw)} × ${fmt(ID)} × ${fmt(IH_F)}/${fmt(IH_B)}</td><td>${m3(p.use)}</td><td>${fmt(p.flapW)} × ${fmt(p.flapH)}</td><td>${fmt(DOOR.w)} × ${fmt(DOOR.z1 - DOOR.z0)}</td><td>${fmt(Math.round(p.tare / 10) * 10)}</td><td>${fmt(s.density)}</td><td>${fmt(full)}</td><td>${fill ? `${fmt(fill)} above floor` : `To ${fmt(FILLTOP)}`}</td></tr>`);
   }
-  $('#sched').innerHTML = `<thead><tr><th>Bin</th><th>Stream</th><th>Side</th><th>Modules</th><th>External W × D × H front/back</th><th>Internal W × D × H front/back</th><th>Net m³</th><th>Flap opening</th><th>Trap door</th><th>Tare kg (est.)</th><th>Loose kg/m³</th><th>Full load kg</th><th>Fill line</th></tr></thead><tbody>${rows.join('')}</tbody>
-  <tfoot><tr><td colspan="3">Station</td><td>${mods}</td><td></td><td></td><td>${m3(net)}</td><td></td><td></td><td>${fmt(Math.round(tare / 10) * 10)}</td><td></td><td>${fmt(load)}</td><td></td></tr></tfoot>`;
+  $('#sched').innerHTML = `<thead><tr><th>Bin</th><th>Stream</th><th>Side</th><th>Fills per home</th><th>External W × D × H front/back</th><th>Internal W × D × H front/back</th><th>Usable m³</th><th>Flap opening</th><th>Trap door</th><th>Tare kg (CAD)</th><th>Loose kg/m³</th><th>Full load kg</th><th>Fill line</th></tr></thead><tbody>${rows.join('')}</tbody>
+  <tfoot><tr><td colspan="3">Station</td><td>${mods.toFixed(1)} change-overs</td><td></td><td></td><td>${m3(net)}</td><td></td><td></td><td>${fmt(Math.round(tare / 10) * 10)}</td><td></td><td>${fmt(load)}</td><td></td></tr></tfoot>`;
   const freeA = NMOD - used('A'), freeB = NMOD - used('B');
-  $('#totals').innerHTML = `<div><b>${m3(net)} m³</b><span>usable in 8 bins</span></div><div><b>2,000 mm</b><span>max height, 6,300 long</span></div><div><b>${fmt(Math.round(tare / 50) * 50)} kg</b><span>bins tare (est., before skid)</span></div><div><b>${fmt(load)} kg</b><span>indicative contents, all full</span></div><p class="cfgline">Bin rated load ${fmt(state.swl)} kg · Side A: ${state.sides.A.map(([id, n]) => `${nn(id)} ${S[id].short} ×${n}`).join(', ')} · Side B: ${state.sides.B.map(([id, n]) => `${nn(id)} ${S[id].short} ×${n}`).join(', ')}</p>` +
-    (freeA + freeB ? `<p class="warn">${freeA + freeB} module${freeA + freeB > 1 ? 's are' : ' is'} unused. Give ${freeA + freeB > 1 ? 'them' : 'it'} to a bin or the skid carries empty space.</p>` : '');
+  $('#totals').innerHTML = `<div><b>${m3(net)} m³</b><span>usable in 8 bins</span></div><div><b>${mods.toFixed(1)}</b><span>change-overs per 240 m² home</span></div><div><b>${fmt(Math.round(tare / 50) * 50)} kg</b><span>bins tare (steel, before skid)</span></div><div><b>${fmt(load)} kg</b><span>indicative contents, all full</span></div><p class="cfgline">Bin rated load ${fmt(state.swl)} kg · Side A: ${state.sides.A.map(([id, n]) => `${nn(id)} ${S[id].short} ${fmt(bin(n).w)}`).join(', ')} · Side B: ${state.sides.B.map(([id, n]) => `${nn(id)} ${S[id].short} ${fmt(bin(n).w)}`).join(', ')}</p>` +
+    (freeA + freeB ? `<p class="warn">${fmt((freeA + freeB) * MOD)} mm of skid is unused. Give it to a bin or the skid carries empty space.</p>` : '') +
+    `<p class="cfgline">Change-overs: the truck comes when the first bin is full (to 2.15 m), so the station is changed about ${mods.toFixed(1)} times for a 240 m² home (about ${S.timber ? fmt(Object.values(S).reduce((a, x) => a + x.home, 0)) : '41'} m³ of loose material).</p>`;
   $('#dimList').innerHTML = [
-    ['Design basis', 'Skid 6,300 long × 2,450 wide, deck 100 above the ground.'],
-    ['Design basis', 'Bins: 1,140 deep, modules × 585 − 20 wide. Lid ridge 2,000 down the middle of the skid, falling to 1,900 at the front edge.'],
-    ['Design basis', 'Flap 1,200 to 1,900. Fork pockets 200 above the bin base (300 above the ground on the skid), floor at 400, rail 100 high on the deck.'],
+    ['Design basis', 'Skid 6,000 long × 2,450 wide, deck 100 above the ground. 2,500 high at the ridge.'],
+    ['Design basis', 'Bins: 1,140 deep, 1,000 to 3,500 wide in 50 mm steps. Each side holds 5,470 of bin width plus 20 mm gaps. Lid ridge 2,500 down the middle of the skid, falling to 2,400 at the front edge.'],
+    ['Design basis', 'Loading opening 1,200 to 2,000 (the dump height), fixed panel from 2,000 to the lid. Fork pockets are tunnels inside the bin, 200 above the bin base (300 above the ground), so the floor sits at 180. Rail 100 high on the deck. Usable volume is counted to 2,150: the opening plus the heap behind it.'],
     ['Design basis', `Usable volume ${m3(net)} m³ across eight bins.`],
     ['To confirm', 'Hook height, runner spacing and roller size on the operator\'s trucks.'],
   ].map(([t, s]) => `<li><span class="st ${t === 'To confirm' ? 'st-t' : 'st-b'}">${t}</span>${s}</li>`).join('');
   const bom = [
     ['Hook skid: runners, deck, rear rollers, A-frame, rear stop', 1, 'Hook interface to suit fleet'],
-    ['Kerb rails, RHS 100 × 50 × 6, continuously welded', 3, 'Both outer edges and centre, 5,850 long'],
+    ['Kerb rails, RHS 100 × 50 × 6, continuously welded', 3, 'Both outer edges and centre, 5,550 long'],
     ['Bins, 4 mm plate', 8, Object.entries(sizes).sort().map(([k, v]) => `${v} × ${k}`).join(', ')],
     ['Hard lids, welded, 100 fall', 8, '1 per bin'],
     ['Drop-down front flaps', 8, '2 hinges and 2 check chains or stays each'],
@@ -329,7 +335,7 @@ function update() { writeHash(); renderCfg(); drawPlan(); drawSide('A'); drawSid
 
 fetch('data/model.json').then((r) => r.json()).then((m) => {
   const SHORT = { plastic: 'Plastics', timber: 'Timber', plaster: 'Plaster', card: 'Card', eps: 'EPS', rubble: 'Rubble', general: 'General', steel: 'Steel' };
-  for (const s of m.streams) S[s.id] = { n: s.n, name: s.name, density: s.density, short: SHORT[s.id] || s.name };
+  for (const s of m.streams) S[s.id] = { n: s.n, name: s.name, density: s.density, short: SHORT[s.id] || s.name, home: s.homeM3 };
   state = readHash();
   $('#swlSel').value = state.swl;
   $('#swlSel').addEventListener('change', (e) => { state.swl = +e.target.value; update(); });
