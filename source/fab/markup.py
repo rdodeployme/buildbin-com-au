@@ -58,7 +58,7 @@ class MSheet:
         a.plot([10, 410], [271, 271], color=COP, lw=1.8)
         a.text(16, 279, "BUILDERSBINS", fontproperties=ARCH, fontsize=14, color="white", va="center")
         a.text(78, 279, title, fontsize=13, weight="bold", color="white", va="center")
-        a.text(404, 279, f"Markup set · Rev B · 20 Nov 2026 · page {idx} of {TOTAL}", fontsize=9, color=COP, va="center", ha="right")
+        a.text(404, 279, f"Markup set · Rev B · 25 Nov 2026 · page {idx} of {TOTAL}", fontsize=9, color=COP, va="center", ha="right")
         a.text(16, 265, sub, fontsize=11, color=GREY, va="top")
         a.text(16, 13, "All measurements in millimetres. Heights from the ground with the bins on the skid. Concept only, not for construction.",
                fontsize=8.5, color=GREY)
@@ -158,7 +158,7 @@ def bin_name(sid):
 # ------------------------------------------------------------ pages
 def p_whole_iso(pdf):
     sh = MSheet(pdf, 1, "The whole station", "3D view from the side B / hook-end corner.")
-    v = IsoV(sh, station(), (30, 40, 270, 210))
+    v = IsoV(sh, station(), (22, 26, 376, 232))
     hy = W / 2
     v.dim3((0, -hy, 0), (L, -hy, 0), (0, -700, 0), f"{L:,.0f} long")
     v.dim3((L, -hy, 0), (L, hy, 0), (900, 0, 0), "2,450 wide")
@@ -166,17 +166,16 @@ def p_whole_iso(pdf):
     v.dim3((0, 0, 0), (0, 0, DECK + HB), (-700, 0, 0), f"{DECK + HB:,.0f} ridge")
     v.tag((L - 150, 0, 1500), "hook frame", dx=12, dy=12)
     v.tag((2000, -hy, DECK + 50), "kerb rail 100 high", dx=-10, dy=-16)
-    sh.notes(310, 40, 95, 210)
     sh.save()
 
 
 def p_whole_ortho(pdf):
     sh = MSheet(pdf, 2, "The whole station: plan, side and end", "Plan from above, side B elevation, and the hook-end view.")
-    s = 1 / 30
+    s = 1 / 25
     st = station()
     top, _ = project(st, "top")
-    vp = place(sh, top, s, 40, 168)
-    vp.dimh(0, L, W / 2 + 260, W / 2, W / 2)
+    vp = place(sh, top, s, 40, 152)
+    vp.dimh(0, L, W / 2 + 140, W / 2, W / 2)
     vp.dimv(-W / 2, W / 2, -260, 0, 0)
     for side, sid, n, x0 in layout():
         w = width(n)
@@ -187,7 +186,7 @@ def p_whole_ortho(pdf):
     vp.label(L / 2, -W / 2 - 280, "PLAN (hook end on the right)", fs=11, ha="center", weight="bold", va="top")
 
     fr, _ = project(st, "front")
-    ve = place(sh, fr, s, 40, 42)
+    ve = place(sh, fr, s, 40, 32)
     ve.dimv(0, DECK + HF, -250, 0, 0, txt=f"{DECK + HF:,.0f}")
     ve.dimv(0, DECK + HB, -600, 0, 0, txt=f"{DECK + HB:,.0f}")
     ve.dimv(0, DECK + FB, L + 200, L, L, txt=f"{DECK + FB:,.0f} flap")
@@ -195,11 +194,10 @@ def p_whole_ortho(pdf):
     ve.label(L / 2, -60, "SIDE B ELEVATION", fs=11, ha="center", weight="bold", va="top")
 
     en, _ = project(st, ((1, 0, 0), (0, 1, 0)))
-    vx = place(sh, en, s, 305, 42)
-    vx.dimh(-W / 2, W / 2, 2350, 2000, 2000)
+    vx = place(sh, en, s, 305, 32)
+    vx.dimh(-W / 2, W / 2, -110, 0, 0)
     vx.dimv(0, 1450, W / 2 + 200, W / 2 - 400, W / 2 - 400, txt="1,450 hook")
-    vx.label(0, -60, "HOOK-END VIEW", fs=11, ha="center", weight="bold", va="top")
-    sh.notes(300, 160, 105, 95)
+    vx.label(0, -260, "HOOK-END VIEW", fs=11, ha="center", weight="bold", va="top")
     sh.save()
 
 
@@ -207,7 +205,7 @@ def p_sep_iso(pdf):
     sh = MSheet(pdf, 3, "Separated: bins lifted off the skid",
                 "Bins raised 1,200 so you can see the skid, the kerb rails and how each bin sits. Bin widths along the front.")
     lift = 1200
-    v = IsoV(sh, station(lift=lift), (25, 35, 290, 222))
+    v = IsoV(sh, station(lift=lift), (22, 26, 376, 234))
     hy = W / 2
     yb = -(W / 2 - RAIL[0] - CL)
     for side, sid, n, x0 in layout():
@@ -220,21 +218,20 @@ def p_sep_iso(pdf):
     v.tag((1200, -hy + 25, DECK + 100), "outer kerb rail", dx=-14, dy=10)
     v.tag((5200, 0, DECK + 100), "centre rail", dx=16, dy=-18)
     v.dim3((X0, -hy, 0), (XH, -hy, 0), (0, -800, 0), f"{XH - X0:,.0f} bin zone")
-    sh.notes(320, 35, 85, 222)
     sh.save()
 
 
 def p_sep_elev(pdf):
     sh = MSheet(pdf, 4, "Separated: bin sizes along each side",
                 f"Each side takes {XH - X0 - 4 * GAP:,.0f} of bins plus 20 mm gaps. Bins are 1,000 to 2,470 wide.")
-    s = 1 / 30
+    s = 1 / 25
     bins_only = station(skid=False)
     for k, (side, view, yb0, title) in enumerate((("B", "front", 150, "SIDE B (as you stand at side B)"),
                                                    ("A", ((0, 1, 0), (-1, 0, 0)), 30 + 0, "SIDE A (as you stand at side A)"))):
         pass
     # side B
     frB, _ = project(station(skid=False), "front")
-    vb = place(sh, frB, s, 62, 162)
+    vb = place(sh, frB, s, 100, 158)
     xsB = [(x0, n, sid) for side, sid, n, x0 in layout() if side == "B"]
     for x0, n, sid in xsB:
         w = width(n)
@@ -246,7 +243,7 @@ def p_sep_elev(pdf):
     vb.label(L / 2, -330, "SIDE B BINS (as you stand at side B)", fs=11, ha="center", weight="bold", va="top")
     # side A, viewed from +y: x runs right-to-left
     frA, _ = project(station(skid=False), ((0, 1, 0), (-1, 0, 0)))
-    va = place(sh, frA, s, 62, 52)
+    va = place(sh, frA, s, 100, 40)
     # in this view u = -x, so map x -> u = -x
     xsA = [(x0, n, sid) for side, sid, n, x0 in layout() if side == "A"]
     for x0, n, sid in xsA:
@@ -254,14 +251,13 @@ def p_sep_elev(pdf):
         va.dimh(-(x0 + w), -x0, -120, 0, 0, txt=f"{w:,.0f}")
         va.label(-(x0 + w / 2), 1450, f"{bin_name(sid)}", fs=9, ha="center", va="center", rotation=90 if width(n) < 1000 else 0)
     va.label(-L / 2, -330, "SIDE A BINS (as you stand at side A)", fs=11, ha="center", weight="bold", va="top")
-    sh.notes(310, 52, 95, 205)
     sh.save()
 
 
 def p_skid_iso(pdf):
     sh = MSheet(pdf, 5, "The skid on its own", "Bins removed. 10 mm deck on SHS 89 runners and cross members, kerb rails welded on top.")
     sk = compound(cad.skid_parts())
-    v = IsoV(sh, sk, (25, 40, 290, 215))
+    v = IsoV(sh, sk, (22, 26, 376, 232))
     hy = W / 2
     v.dim3((0, -hy, 0), (L, -hy, 0), (0, -700, 0), f"{L:,.0f}")
     v.dim3((L, -hy, 0), (L, hy, 0), (900, 0, 0), "2,450")
@@ -272,18 +268,17 @@ def p_skid_iso(pdf):
     v.tag((PX + 44, 0, 1500), "hook frame, hook bar 1,450", dx=6, dy=14)
     v.tag((75, -550, 70), "rear rollers", dx=-12, dy=-10)
     v.tag((L - 30, 0, LIGHT_TOP), f"light mast {LIGHT_TOP:,}", dx=-30, dy=6)
-    sh.notes(320, 40, 85, 215)
     sh.save()
 
 
 def p_skid_ortho(pdf):
     sh = MSheet(pdf, 6, "The skid: plan, side and end", "Where the rails, runners and cross members sit.")
-    s = 1 / 30
+    s = 1 / 25
     sk = compound(cad.skid_parts())
     top, _ = project(sk, "top")
-    vp = place(sh, top, s, 45, 160)
+    vp = place(sh, top, s, 45, 155)
     hy = W / 2
-    vp.dimh(0, L, hy + 220, hy, hy)
+    vp.dimh(0, L, hy + 130, hy, hy)
     vp.dimh(0, X0, -hy - 150, -hy, -hy, txt="150")
     vp.dimh(X0, XH, -hy - 150, -hy, -hy, txt=f"{XH - X0:,.0f} bin zone")
     vp.dimh(XH, L, -hy - 150, -hy, -hy, txt="300")
@@ -293,7 +288,7 @@ def p_skid_ortho(pdf):
     vp.label(L / 2, -hy - 420, "SKID PLAN", fs=11, ha="center", weight="bold", va="top")
 
     fr, _ = project(sk, "front")
-    ve = place(sh, fr, s, 45, 50)
+    ve = place(sh, fr, s, 45, 35)
     ve.dimv(0, DECK, -200, 0, 0, txt="99 deck")
     ve.dimv(0, DECK + RAIL[1], -520, 0, 0, txt="199 rail")
     ve.dimv(0, 1450, L + 250, L - 40, L - 40, txt="1,450 hook")
@@ -301,11 +296,10 @@ def p_skid_ortho(pdf):
     ve.label(L / 2, -120, "SKID SIDE", fs=11, ha="center", weight="bold", va="top")
 
     en, _ = project(sk, ((-1, 0, 0), (0, -1, 0)))
-    vx = place(sh, en, s, 300, 160)
+    vx = place(sh, en, s, 305, 160)
     vx.label(0, -200, "REAR END", fs=11, ha="center", weight="bold", va="top")
     # rear view: u = -y
     vx.dimh(-hy, hy, -100, 0, 0)
-    sh.notes(300, 42, 105, 80)
     sh.save()
 
 
@@ -315,18 +309,17 @@ def p_bin_iso(pdf, n=None):
     sh = MSheet(pdf, 7, f"A typical bin ({w:,.0f} wide)",
                 f"Flap side and trap-door side. Five bins are this size ({', '.join(used_by(n))}); the others differ only in width.")
     b = compound(cad.bin_parts(n))
-    v1 = IsoV(sh, b, (25, 45, 135, 200), view="iso2")
+    v1 = IsoV(sh, b, (20, 32, 185, 226), view="iso2")
     v1.dim3((0, 0, 0), (w, 0, 0), (0, -300, 0), f"{w:,.0f}")
     v1.dim3((0, 0, 0), (0, D, 0), (-300, 0, 0), "1,140")
     v1.tag((w / 2, 0, FB + 330), "drop-down flap", dx=0, dy=0, fs=9)
     v1.tag((pocket_centres(w)[0], 0, POCKET_Z + 50), "fork pocket", dx=-10, dy=-14, fs=9)
     v1.label(0, 0, "")
-    sh.ax.text(92, 40, "FLAP SIDE", fontsize=11, weight="bold", ha="center")
-    v2 = IsoV(sh, b, (170, 45, 135, 200), view="iso")
+    sh.ax.text(112, 24, "FLAP SIDE", fontsize=11, weight="bold", ha="center")
+    v2 = IsoV(sh, b, (215, 32, 185, 226), view="iso")
     v2.tag((w, D / 2, 1030), "trap door, top-hinged", dx=10, dy=0, fs=9)
     v2.tag((w / 2, D * 0.6, ztop_(D * 0.6)), "hard lid", dx=0, dy=8, fs=9)
-    sh.ax.text(237, 40, "TRAP-DOOR SIDE", fontsize=11, weight="bold", ha="center")
-    sh.notes(315, 45, 90, 200)
+    sh.ax.text(307, 24, "TRAP-DOOR SIDE", fontsize=11, weight="bold", ha="center")
     sh.save()
 
 
@@ -338,11 +331,11 @@ def p_bin_ortho(pdf, n=None):
     n = n or SIZES[0]
     w = width(n)
     sh = MSheet(pdf, 8, f"A typical bin: front and side ({w:,.0f} wide)", "Heights from the bin base. Add 99 for heights from the ground on the skid.")
-    s = 1 / 17
+    s = 1 / 13
     b = compound(cad.bin_parts(n))
     pcs = pocket_centres(w)
     fr, _ = project(b, "front")
-    vf = V(sh, fr, s, 55, 62)
+    vf = V(sh, fr, s, 120, 50)
     vf.dimh(0, w, -150, 0, 0)
     vf.dimh(36, w - 36, FB + 250, FB, FB, txt=f"{w - 72:,.0f} flap")
     vf.dimh(pcs[0], pcs[1], POCKET_Z - 90, POCKET_Z, POCKET_Z, txt=f"{pcs[1] - pcs[0]:,.0f} pockets")
@@ -352,13 +345,12 @@ def p_bin_ortho(pdf, n=None):
     vf.dimv(0, HF, -750, 0, 0, txt=f"{HF:,.0f}")
     vf.label(w / 2, -330, "FRONT (flap side)", fs=11, ha="center", weight="bold", va="top")
     rt, _ = project(b, "right")
-    vr = V(sh, rt, s, 55 + w * s + 55, 62)
+    vr = V(sh, rt, s, 120 + w * s + 85, 50)
     vr.dimh(0, D, -150, 0, 0)
     vr.dimv(0, HB, D + 140, D, D, txt=f"{HB:,.0f}")
     vr.dimv(DOOR[2], DOOR[3], D + 360, D, D, txt=f"{DOOR[3] - DOOR[2]:,.0f} door")
     vr.dimh(DOOR[0], DOOR[1], DOOR[3] + 330, DOOR[3], DOOR[3], txt="1,030 door")
     vr.label(D / 2, -330, "RIGHT SIDE (trap door)", fs=11, ha="center", weight="bold", va="top")
-    sh.notes(300, 62, 105, 190)
     sh.save()
 
 
